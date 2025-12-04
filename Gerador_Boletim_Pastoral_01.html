@@ -1,0 +1,1847 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Gerador de Boletim Pastoral PIB Reformada em Russas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Estilos principais da página -->
+  <style>
+    :root {
+      --primary: #1e3a8a;
+      --primary-dark: #020617;
+      --primary-soft: #e0e7ff;
+      --accent: #d4a15c;
+      --accent-dark: #b5823f;
+      --success: #16a34a;
+      --bg-page-custom: #c9ced1;
+      --bg-card: #fbfbfb;
+      --border-soft: #d1d5db;
+      --text-main: #111827;
+      --text-muted: #6b7280;
+      --btn-height: 44px;
+      --header-gradient: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, rgba(255,255,255,0.02) 0%, var(--bg-page-custom) 40%, #9aa0a6 100%);
+      color: var(--text-main);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .page-wrapper {
+      width: min(1600px, 100% - 2rem);
+      margin: 0 auto;
+      padding: clamp(1.8rem, 3vw, 2.5rem) 0 3rem;
+    }
+
+    .page-header { text-align: center; margin-bottom: 2.2rem; padding: 0 1rem; position: relative; }
+    .page-header::after { content: ""; position: absolute; left: 50%; transform: translateX(-50%); bottom: -0.9rem; width: 140px; height: 3px; border-radius: 999px; background: linear-gradient(90deg, var(--primary-dark), var(--primary), var(--accent)); opacity: 0.75; }
+
+    .page-title { display: inline-flex; align-items: center; gap: 0.6rem; padding: 0.8rem 1.6rem; border-radius: 999px; background: linear-gradient(135deg, rgba(255,255,255,0.92), rgba(248,250,252,0.93)); border: 1px solid rgba(226, 232, 240, 0.9); box-shadow: 0 18px 40px rgba(15, 23, 42, 0.10); }
+    .page-title span.icon { width: 34px; height: 34px; border-radius: 999px; background: radial-gradient(circle at 30% 20%, #c7d2fe, var(--primary)); display: inline-flex; align-items: center; justify-content: center; color: #ffffff; font-weight: 700; font-size: 1rem; }
+    .page-title-text { font-size: clamp(1.05rem, 1.3vw, 1.2rem); font-weight: 700; color: var(--primary-dark); letter-spacing: 0.04em; }
+    .page-subtitle { margin-top: 0.8rem; font-size: 0.9rem; color: var(--text-muted); max-width: 640px; margin-left: auto; margin-right: auto; }
+
+    .layout-main { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: clamp(1rem, 3vw, 2rem); align-items: flex-start; padding: 0 1rem; }
+    .card { background: var(--bg-card); border-radius: 18px; padding: 1.8rem 1.9rem 2.2rem; box-shadow: 0 14px 35px rgba(15, 23, 42, 0.12); border: 1px solid rgba(148, 163, 184, 0.25); width: 100%; position: relative; overflow: hidden; }
+    .preview-card { background: #f6f7f8; border-radius: 18px; padding: 1.3rem 1.5rem 1.8rem; box-shadow: 0 14px 35px rgba(15, 23, 42, 0.10); border: 1px solid rgba(148, 163, 184, 0.35); width: 100%; position: sticky; top: 1.4rem; max-height: calc(100vh - 4rem); overflow: auto; }
+
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem 1.5rem; }
+    .full-width { grid-column: 1 / -1; }
+
+    label { display: block; font-size: 0.86rem; font-weight: 600; margin-bottom: 0.3rem; color: var(--primary-dark); }
+    .field-hint { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.15rem; }
+
+    input[type="text"], input[type="date"], textarea, select { width: 100%; padding: 0.6rem 0.7rem; border-radius: 10px; border: 1px solid #d1d5db; font-size: 0.95rem; background: #f9fafb; outline: none; resize: vertical; min-height: 40px; box-sizing: border-box; transition: border-color 0.08s ease, box-shadow 0.08s ease, background 0.08s ease; }
+    input[type="color"] { width: 48px; height: 36px; padding: 0; border: none; background: transparent; cursor: pointer; }
+
+    input[type="text"]:focus, input[type="date"]:focus, textarea:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 1px rgba(30, 64, 175, 0.25); background: #ffffff; }
+
+    .controls-inline { display:flex; gap:0.5rem; align-items:center; }
+    .small-select { min-width: 160px; }
+
+    .btn { display: inline-flex; align-items: center; gap: 0.45rem; padding: 0 1.3rem; height: var(--btn-height); line-height: 1; font-size: 0.95rem; font-weight: 600; border-radius: 999px; border: none; cursor: pointer; transition: transform 0.08s ease, box-shadow 0.12s ease, filter 0.08s ease, opacity 0.08s ease; text-decoration: none; }
+    .btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #ffffff; box-shadow: 0 14px 34px rgba(30, 64, 175, 0.30); border: 1px solid rgba(10, 25, 60, 0.08); min-width: 170px; justify-content: center; }
+    .btn-secondary { background: linear-gradient(135deg, #ffffff, #f1f5f9); color: #1f2937; border: 1px solid #d1d5db; box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06); min-width: 170px; justify-content: center; }
+    .btn-print { background: linear-gradient(135deg, var(--success), #15803d); color: #ffffff; border: 1px solid rgba(0,0,0,0.06); box-shadow: 0 12px 30px rgba(16, 185, 129, 0.14); min-width: 170px; justify-content: center; }
+
+    .section-title { font-size: 0.94rem; font-weight: 700; margin-top: 1.5rem; margin-bottom: 0.5rem; color: var(--primary-dark); display: flex; align-items: center; gap: 0.45rem; }
+    .section-title-pill { width: 20px; height: 20px; border-radius: 999px; background: radial-gradient(circle at 30% 20%, #c7d2fe, var(--primary)); opacity: 0.9; }
+
+    .blocks-container { border-radius: 14px; border: 1px dashed #cbd5f5; padding: 0.9rem; background: #f9fafb; }
+    .block-item { background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 0.8rem 0.9rem 0.9rem; margin-bottom: 0.8rem; box-shadow: 0 6px 14px rgba(15, 23, 42, 0.06); }
+
+    .preview-title { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.3rem; color: var(--primary-dark); }
+    .preview-subtitle { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.9rem; }
+
+    .boletim { background: #ffffff; border-radius: 18px; padding: 2rem; border: 1px solid var(--border-soft); box-shadow: 0 22px 50px rgba(15, 23, 42, 0.16); box-sizing: border-box; }
+    .boletim-header { text-align: center; padding: 1rem 1.2rem 1.2rem; margin-bottom: 1.6rem; position: relative; display: flex; flex-direction: column; align-items: center; gap: 0.15rem; border-bottom: none; background: var(--header-gradient); color: #f9fafb; border-radius: 14px 14px 10px 10px; background-repeat: no-repeat; background-position: center center; background-size: 140% 100%; }
+    .boletim-header-inner { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; width: 100%; }
+    .boletim-logo { max-height: 80px; width: auto; flex-shrink: 0; }
+    .boletim-header-text { flex: 1; text-align: center; }
+    .boletim-main-title { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.26em; color: #e5e7eb; }
+    .boletim-igreja { font-size: 0.9rem; font-weight: 600; color: #e5e7eb; margin-top: 0.15rem; }
+    .boletim-titulo { font-size: 1.8rem; font-weight: 700; color: #fef9c3; font-style: normal; margin-top: 0.35rem; margin-bottom: 0.15rem; }
+    .boletim-meta { font-size: 0.86rem; color: #cbd5f5; margin-top: 0.4rem; display: flex; flex-wrap: wrap; gap: 0.35rem; justify-content: center; }
+
+    .boletim-content { font-size: 0.98rem; color: #111827; font-family: Georgia, "Times New Roman", serif; }
+    .boletim-imagem { float: right; margin-left: 1.8rem; margin-bottom: 1rem; max-width: 42%; border-radius: 18px; border: 1px solid #e5e7eb; object-fit: cover; box-shadow: 0 14px 24px rgba(15, 23, 42, 0.22); display: block; shape-outside: margin-box; }
+
+    .placeholder-text { text-align: center; color: var(--text-muted); font-size: 0.95rem; margin-top: 1.5rem; }
+
+    .boletim-citacao-item { margin-bottom: 0.4rem; font-style: italic; position: relative; padding-left: 1rem; color: #1f2937; border-left: 3px solid #1e3a8a; }
+    .boletim-impactante-bloco { background: radial-gradient(circle at 10% 0, #1f2937, #020617); color: #f9fafb; border-radius: 14px; padding: 1.1rem 1.3rem; border-left: 4px solid #d4a15c; margin-bottom: 1.25rem; box-shadow: 0 18px 40px rgba(15, 23, 42, 0.6); font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .format-strong { background: #e5e7eb; border-left: 4px solid #1e3a8a; border-radius: 12px; padding: 0.85rem 1rem; }
+    .format-soft { background: #f3f4ff; border-left: 3px solid #cbd5f5; border-radius: 12px; padding: 0.8rem 1rem; }
+    .format-small { font-size: 0.9em; color: #4b5563; }
+
+    /* font-scale helpers (aplicar escala por bloco) */
+    .boletim-texto-bloco.font-scale--2,
+    .boletim-citacoes-bloco.font-scale--2,
+    .boletim-impactante-bloco.font-scale--2 { font-size: 0.84rem; }
+
+    .boletim-texto-bloco.font-scale--1,
+    .boletim-citacoes-bloco.font-scale--1,
+    .boletim-impactante-bloco.font-scale--1 { font-size: 0.92rem; }
+
+    .boletim-texto-bloco.font-scale-0,
+    .boletim-citacoes-bloco.font-scale-0,
+    .boletim-impactante-bloco.font-scale-0 { font-size: 1rem; }
+
+    .boletim-texto-bloco.font-scale-1,
+    .boletim-citacoes-bloco.font-scale-1,
+    .boletim-impactante-bloco.font-scale-1 { font-size: 1.08rem; }
+
+    .boletim-texto-bloco.font-scale-2,
+    .boletim-citacoes-bloco.font-scale-2,
+    .boletim-impactante-bloco.font-scale-2 { font-size: 1.16rem; }
+
+    .boletim-texto-bloco.font-scale-3,
+    .boletim-citacoes-bloco.font-scale-3,
+    .boletim-impactante-bloco.font-scale-3 { font-size: 1.24rem; }
+
+    .boletim-texto-bloco.font-scale-4,
+    .boletim-citacoes-bloco.font-scale-4,
+    .boletim-impactante-bloco.font-scale-4 { font-size: 1.32rem; }
+
+    .boletim-texto-bloco.font-scale-5,
+    .boletim-citacoes-bloco.font-scale-5,
+    .boletim-impactante-bloco.font-scale-5 { font-size: 1.40rem; }
+
+    .boletim-texto-bloco.font-scale-6,
+    .boletim-citacoes-bloco.font-scale-6,
+    .boletim-impactante-bloco.font-scale-6 { font-size: 1.48rem; }
+
+    .boletim-texto-bloco,
+    .boletim-citacoes-bloco,
+    .boletim-impactante-bloco {
+      transition: font-size 0.12s ease, color 0.12s ease;
+    }
+
+    .boletim-footer {
+      margin-top: 1.2rem;
+      padding: 0.8rem 1rem 0.9rem;
+      font-size: 0.78rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      align-items: center;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #e5e7eb;
+      border-radius: 10px 10px 0 0;
+      border-top: 1px solid rgba(250, 204, 21, 0.35);
+    }
+
+    .boletim-footer-entity {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .boletim-footer-entity-info {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 0.15rem;
+    }
+
+    .boletim-footer-entity-name {
+      font-weight: 600;
+      color: #f9fafb;
+    }
+
+    .boletim-footer-entity-address {
+      font-weight: 400;
+      color: #d1d5db;
+    }
+
+    .boletim-footer-icons {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      flex-wrap: wrap;
+    }
+
+    .footer-icon-link {
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(15, 23, 42, 0.3);
+      border: 1px solid rgba(148, 163, 184, 0.85);
+      text-decoration: none;
+      color: #f9fafb;
+      transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease, transform 0.08s ease;
+    }
+
+    .footer-icon-link svg {
+      width: 13px;
+      height: 13px;
+      display: block;
+    }
+
+    .footer-icon-link:hover {
+      background: #facc15;
+      border-color: #facc15;
+      color: #1f2937;
+      transform: translateY(-0.5px);
+    }
+
+    .gradient-controls { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+    .gradient-controls input[type="color"] {
+      width: 44px;
+      height: 34px;
+      padding: 4px;
+      border-radius: 8px;
+      border: 1px solid var(--border-soft);
+      background: #ffffff;
+      cursor: pointer;
+      box-sizing: border-box;
+    }
+    .gradient-controls .small-select { min-width: 120px; align-self: center; }
+    .gradient-controls button.btn { min-width: 120px; padding-left: 0.85rem; padding-right: 0.85rem; }
+
+    :root { --header-gradient-fallback: linear-gradient(135deg, var(--primary), var(--primary-dark)); }
+    .boletim-header { background: var(--header-gradient), var(--header-gradient-fallback); background-blend-mode: normal; }
+
+    @media (max-width: 1200px) { .layout-main { grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.95fr); } }
+    @media (max-width: 960px) { .layout-main { grid-template-columns: 1fr; } .preview-card { position: static; max-height: none; margin-top: 1rem; } }
+    @media (max-width: 640px) {
+      .card, .preview-card, .boletim { padding: 1.3rem 1rem 1.6rem; }
+      .options-row { flex-direction: column; align-items: flex-start; }
+      .block-header { align-items: flex-start; flex-direction: column; }
+      .boletim-header-inner { flex-direction: column; }
+      .boletim-header-text { text-align: center; }
+      .gradient-controls { gap: 0.5rem; }
+      .gradient-controls .small-select { min-width: 100px; }
+    }
+
+    @page { size: A4; margin: 2cm; }
+    @media print {
+      * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      body { background: #ffffff !important; }
+      .page-header, .layout-main > .card, .layout-main > .preview-card { box-shadow: none !important; }
+      .preview-card { display: none; }
+      .boletim-header { background: #1f2937 !important; color: #ffffff !important; page-break-after: avoid; }
+
+      .boletim-footer {
+        background: #1f2937 !important;
+        color: #ffffff !important;
+        border-top: 1px solid #4b5563 !important;
+      }
+      .boletim-footer-entity-name,
+      .boletim-footer-entity-address {
+        color: #e5e7eb !important;
+      }
+    }
+
+  </style>
+</head>
+<body>
+  <div class="page-wrapper">
+    <header class="page-header">
+      <div class="page-title">
+        <span class="icon">BP</span>
+        <span class="page-title-text">Gerador de Boletim Pastoral</span>
+      </div>
+      <p class="page-subtitle">
+        Monte o Boletim Pastoral da PIB Reformada em Russas com pré-visualização em tempo real pronto para leitura e impressão.
+      </p>
+    </header>
+
+    <div class="layout-main">
+      <section class="card">
+        <form id="form-boletim">
+          <div class="form-grid">
+
+            <!-- TÍTULO DO BOLETIM, com cor e fonte -->
+            <div>
+              <label for="titulo">Título do Boletim</label>
+              <div style="display:flex; gap:0.5rem; align-items:center;">
+                <input type="text" id="titulo" required placeholder="Ex: Boletim Dominical">
+                <input type="color" id="tituloColor" title="Cor do título" value="#fef9c3" aria-label="Cor do título">
+              </div>
+              <div style="margin-top:0.5rem;">
+                <select id="tituloFont" class="small-select" title="Fonte do título">
+                  <option value="default">Fonte padrão do boletim</option>
+                  <option value="Georgia, 'Times New Roman', serif">Georgia / Times</option>
+                  <option value="'Palatino Linotype', 'Book Antiqua', Palatino, serif">Palatino</option>
+                  <option value="'Garamond', 'Times New Roman', serif">Garamond</option>
+                  <option value="Arial, Helvetica, sans-serif">Arial / Helvetica</option>
+                  <option value="'Segoe UI', Tahoma, Geneva, Verdana, sans-serif">Segoe UI</option>
+                  <option value="Verdana, Geneva, sans-serif">Verdana</option>
+                  <option value="Tahoma, Geneva, sans-serif">Tahoma</option>
+                  <option value="'Trebuchet MS', Helvetica, sans-serif">Trebuchet MS</option>
+                  <option value="'Lucida Sans Unicode', 'Lucida Grande', sans-serif">Lucida Sans</option>
+                  <option value="'Open Sans', Arial, sans-serif">Open Sans</option>
+                  <option value="Roboto, Arial, sans-serif">Roboto</option>
+                  <option value="Lato, Arial, sans-serif">Lato</option>
+                  <option value="'Merriweather', Georgia, serif">Merriweather</option>
+                  <option value="'Playfair Display', Georgia, serif">Playfair Display</option>
+                  <option value="'Oswald', Arial, sans-serif">Oswald</option>
+                  <option value="'Montserrat', Arial, sans-serif">Montserrat</option>
+                  <option value="'Raleway', Arial, sans-serif">Raleway</option>
+                  <option value="'Courier New', Courier, monospace">Courier New (monospace)</option>
+                  <option value="Consolas, 'Courier New', monospace">Consolas (monospace)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- NOME DO AUTOR, com cor e fonte -->
+            <div>
+              <label for="autor">Nome do Autor</label>
+              <div style="display:flex; gap:0.5rem; align-items:center;">
+                <input type="text" id="autor" required placeholder="Ex: Pr. Fulano">
+                <input type="color" id="autorColor" title="Cor do autor" value="#cbd5f5" aria-label="Cor do autor">
+              </div>
+              <div style="margin-top:0.5rem;">
+                <select id="autorFont" class="small-select" title="Fonte do autor">
+                  <option value="default">Fonte padrão do boletim</option>
+                  <option value="Georgia, 'Times New Roman', serif">Georgia / Times</option>
+                  <option value="'Palatino Linotype', 'Book Antiqua', Palatino, serif">Palatino</option>
+                  <option value="Arial, Helvetica, sans-serif">Arial / Helvetica</option>
+                  <option value="'Segoe UI', Tahoma, Geneva, Verdana, sans-serif">Segoe UI</option>
+                  <option value="'Open Sans', Arial, sans-serif">Open Sans</option>
+                  <option value="Roboto, Arial, sans-serif">Roboto</option>
+                  <option value="'Courier New', Courier, monospace">Courier New</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- NOME DA IGREJA, com cor e fonte -->
+            <div>
+              <label for="igreja">Nome da Igreja</label>
+              <div style="display:flex; gap:0.5rem; align-items:center;">
+                <input type="text" id="igreja" value="Primeira Igreja Batista Reformada em Russas" required>
+                <input type="color" id="igrejaColor" title="Cor da igreja" value="#e5e7eb" aria-label="Cor da igreja">
+              </div>
+              <div style="margin-top:0.5rem;">
+                <select id="igrejaFont" class="small-select" title="Fonte da igreja">
+                  <option value="default">Fonte padrão do boletim</option>
+                  <option value="Georgia, 'Times New Roman', serif">Georgia / Times</option>
+                  <option value="'Playfair Display', Georgia, serif">Playfair Display</option>
+                  <option value="'Merriweather', Georgia, serif">Merriweather</option>
+                  <option value="'Montserrat', Arial, sans-serif">Montserrat</option>
+                  <option value="'Raleway', Arial, sans-serif">Raleway</option>
+                  <option value="Arial, Helvetica, sans-serif">Arial / Helvetica</option>
+                  <option value="'Segoe UI', Tahoma, Geneva, Verdana, sans-serif">Segoe UI</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- DATA DO BOLETIM, com cor e fonte -->
+            <div>
+              <label for="data">Data do Boletim</label>
+              <div style="display:flex; gap:0.5rem; align-items:center;">
+                <input type="date" id="data" required>
+                <input type="color" id="dataColor" title="Cor da data" value="#cbd5f5" aria-label="Cor da data">
+              </div>
+              <div style="margin-top:0.5rem;">
+                <select id="dataFont" class="small-select" title="Fonte da data">
+                  <option value="default">Fonte padrão do boletim</option>
+                  <option value="Arial, Helvetica, sans-serif">Arial / Helvetica</option>
+                  <option value="'Segoe UI', Tahoma, Geneva, Verdana, sans-serif">Segoe UI</option>
+                  <option value="Verdana, Geneva, sans-serif">Verdana</option>
+                  <option value="'Courier New', Courier, monospace">Courier New</option>
+                  <option value="Georgia, 'Times New Roman', serif">Georgia</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Cor do background e imagem do boletim -->
+            <div>
+              <label for="corFundo">Altera a Cor do Background Principal</label>
+              <div style="display:flex; align-items:center; gap:0.6rem;">
+                <input type="color" id="corFundo" value="#c9ced1" aria-label="Escolher cor do fundo">
+                <button type="button" id="restaurarFundoBtn" class="btn btn-secondary" title="Restaurar cor padrão do fundo">Restaurar padrão</button>
+              </div>
+              <div class="field-hint">Escolha a cor desejada para o background principal da página.</div>
+            </div>
+
+            <!-- NOVO: Controle de degradê do cabeçalho -->
+            <div>
+              <label for="headerGradientLabel">Degradê do Cabeçalho</label>
+              <div class="controls-inline gradient-controls">
+                <input type="color" id="headerColorStart" title="Cor inicial do degradê" value="#1e3a8a" aria-label="Cor inicial do cabeçalho">
+                <input type="color" id="headerColorEnd" title="Cor final do degradê" value="#020617" aria-label="Cor final do cabeçalho">
+                <select id="headerAngle" class="small-select" title="Ângulo do degradê">
+                  <option value="0">0 deg</option>
+                  <option value="45">45 deg</option>
+                  <option value="90">90 deg</option>
+                  <option value="135" selected>135 deg</option>
+                  <option value="180">180 deg</option>
+                  <option value="225">225 deg</option>
+                  <option value="270">270 deg</option>
+                  <option value="315">315 deg</option>
+                </select>
+                <button type="button" id="restaurarHeaderBtn" class="btn btn-secondary" title="Restaurar degradê padrão do cabeçalho">Restaurar</button>
+              </div>
+            </div>
+
+            <div class="full-width">
+              <label for="imagem">Imagem do Boletim</label>
+              <input type="file" id="imagem" accept="image/*">
+              <div class="field-hint">A imagem ficará no alto do texto, flutuando à direita, com mais largura e mais espaço do texto ao redor.</div>
+            </div>
+
+          </div>
+
+          <!-- Rodapé / Nota de rodapé -->
+          <h2 class="section-title">
+            <span class="section-title-pill"></span>
+            Rodapé do Boletim (nota de rodapé)
+          </h2>
+          <p class="field-hint">Esses dados aparecerão no rodapé do boletim, primeiro o nome da igreja com o endereço, e abaixo "Primeira Igreja Batista Reformada em Russas" com os ícones das redes sociais, todos clicáveis e abrindo em nova página.</p>
+
+          <div class="form-grid">
+            <div class="full-width">
+              <label for="rodapeIgreja">Nome da Igreja no rodapé</label>
+              <input type="text" id="rodapeIgreja" value="Primeira Igreja Batista Reformada em Russas">
+            </div>
+
+            <div class="full-width">
+              <label for="rodapeEndereco">Endereço completo</label>
+              <input type="text" id="rodapeEndereco" value="Rua Prefeito José Martins de Santiago, 1028, Catumbela (Russas-CE) - Em frente ao CVT.">
+            </div>
+
+            <div>
+              <label for="rodapeSite">Site da igreja (URL)</label>
+              <input type="text" id="rodapeSite" placeholder="https://www.seusite.com">
+            </div>
+
+            <div>
+              <label for="rodapeFacebook">Facebook da igreja (URL)</label>
+              <input type="text" id="rodapeFacebook" value="https://www.facebook.com/igrejabatistareformadaemrussas">
+            </div>
+
+            <div>
+              <label for="rodapeInstagram">Instagram da igreja (URL)</label>
+              <input type="text" id="rodapeInstagram" value="https://www.instagram.com/ibrrussas">
+            </div>
+
+            <div>
+              <label for="rodapeYoutube">YouTube da igreja (URL)</label>
+              <input type="text" id="rodapeYoutube" value="https://www.youtube.com/@ibrrussas">
+            </div>
+          </div>
+
+          <!-- Redes sociais do Pr. Elivando Mesquita -->
+          <h2 class="section-title">
+            <span class="section-title-pill"></span>
+            Redes sociais do Pr. Elivando Mesquita
+          </h2>
+          <p class="field-hint">No rodapé aparecerá "Pr. Elivando Mesquita" com os ícones das redes preenchidas, clicáveis e abrindo em nova página.</p>
+
+          <div class="form-grid">
+            <div class="full-width">
+              <label for="pastorSite">Site do Pr. Elivando (URL)</label>
+              <input type="text" id="pastorSite" value="https://anutricaodaigreja.com/">
+            </div>
+
+            <div>
+              <label for="pastorFacebook">Facebook do Pr. Elivando (URL)</label>
+              <input type="text" id="pastorFacebook" value="https://www.facebook.com/elivando.mesquita">
+            </div>
+
+            <div>
+              <label for="pastorInstagram">Instagram do Pr. Elivando (URL)</label>
+              <input type="text" id="pastorInstagram" value="https://www.instagram.com/ElivandoMesquita">
+            </div>
+
+            <div>
+              <label for="pastorYoutube">YouTube do Pr. Elivando (URL)</label>
+              <input type="text" id="pastorYoutube" value="https://www.youtube.com/@ElivandoMesquita">
+            </div>
+          </div>
+
+          <!-- Blocos dinâmicos e botões -->
+          <h2 class="section-title">
+            <span class="section-title-pill"></span>
+            Estrutura do Boletim
+          </h2>
+          <p class="blocks-hint">Adicione blocos de texto principal, citações ou impactantes, use a barra de formatação disponível em cada bloco.</p>
+
+          <div id="blocksContainer" class="blocks-container"></div>
+
+          <button type="button" id="addBlockBtn" class="btn btn-secondary" title="Adicionar um novo bloco de conteúdo ao boletim">
+            <span>+</span><span>Adicionar bloco</span>
+          </button>
+
+          <div class="options-row" style="margin-top:1.2rem;">
+            <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+              <button type="button" id="downloadHtmlBtn" class="btn btn-secondary" disabled title="Fazer download do HTML do último boletim gerado">Baixar HTML do boletim</button>
+              <button type="submit" class="btn btn-primary" title="Gerar o boletim com base nos dados preenchidos"><span>Gerar Boletim</span></button>
+              <button type="button" id="imprimirBtn" class="btn btn-print" title="Imprimir o último boletim gerado">Imprimir boletim</button>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <aside class="preview-card">
+        <div class="preview-title">Pré-visualização em tempo real</div>
+        <div class="preview-subtitle">O boletim é atualizado automaticamente enquanto você edita o conteúdo.</div>
+        <div id="previewContainer">
+          <p class="placeholder-text">Comece a preencher o formulário à esquerda para visualizar o boletim aqui.</p>
+        </div>
+      </aside>
+    </div>
+
+    <section class="result-wrapper">
+      <div id="boletimResultado">
+        <p class="placeholder-text">O boletim NÃO será exibido aqui. Ao gerar, ele será aberto apenas em nova aba, ou baixado automaticamente se o navegador bloquear a nova aba.</p>
+      </div>
+    </section>
+  </div>
+
+  <!-- JavaScript da aplicação -->
+  <script>
+    // Elementos principais
+    const formBoletim = document.getElementById('form-boletim');
+    const previewContainer = document.getElementById('previewContainer');
+    const blocksContainer = document.getElementById('blocksContainer');
+    const addBlockBtn = document.getElementById('addBlockBtn');
+    const downloadHtmlBtn = document.getElementById('downloadHtmlBtn');
+    const imprimirBtn = document.getElementById('imprimirBtn');
+
+    // Inputs principais
+    const tituloInput = document.getElementById('titulo');
+    const tituloColor = document.getElementById('tituloColor');
+    const tituloFont = document.getElementById('tituloFont');
+
+    const autorInput = document.getElementById('autor');
+    const autorColor = document.getElementById('autorColor');
+    const autorFont = document.getElementById('autorFont');
+
+    const igrejaInput = document.getElementById('igreja');
+    const igrejaColor = document.getElementById('igrejaColor');
+    const igrejaFont = document.getElementById('igrejaFont');
+
+    const dataInput = document.getElementById('data');
+    const dataColor = document.getElementById('dataColor');
+    const dataFont = document.getElementById('dataFont');
+
+    const corFundoInput = document.getElementById('corFundo');
+    const restaurarFundoBtn = document.getElementById('restaurarFundoBtn');
+    const imagemInput = document.getElementById('imagem');
+
+    const rodapeIgrejaInput = document.getElementById('rodapeIgreja');
+    const rodapeEnderecoInput = document.getElementById('rodapeEndereco');
+    const rodapeSiteInput = document.getElementById('rodapeSite');
+    const rodapeFacebookInput = document.getElementById('rodapeFacebook');
+    const rodapeInstagramInput = document.getElementById('rodapeInstagram');
+    const rodapeYoutubeInput = document.getElementById('rodapeYoutube');
+
+    const pastorSiteInput = document.getElementById('pastorSite');
+    const pastorFacebookInput = document.getElementById('pastorFacebook');
+    const pastorInstagramInput = document.getElementById('pastorInstagram');
+    const pastorYoutubeInput = document.getElementById('pastorYoutube');
+
+    // Header gradient inputs
+    const headerColorStartInput = document.getElementById('headerColorStart');
+    const headerColorEndInput = document.getElementById('headerColorEnd');
+    const headerAngleSelect = document.getElementById('headerAngle');
+    const restaurarHeaderBtn = document.getElementById('restaurarHeaderBtn');
+
+    let blockCounter = 0;
+    let ultimoHtmlBoletim = null;
+    let ultimoNomeArquivoBoletim = 'boletim.html';
+    let imagemAtualSrc = null;
+
+    // Storage keys
+    const BG_STORAGE_KEY = 'boletim_bg_color';
+    const HEADER_GRADIENT_KEY = 'boletim_header_gradient';
+    const LAST_HTML_KEY = 'ultimo_html_boletim';
+    const LAST_HTML_NAME_KEY = 'ultimo_html_boletim_name';
+    const BG_DEFAULT = getComputedStyle(document.documentElement).getPropertyValue('--bg-page-custom').trim() || '#c9ced1';
+    const HEADER_DEFAULT = getComputedStyle(document.documentElement).getPropertyValue('--header-gradient').trim() || 'linear-gradient(135deg, var(--primary), var(--primary-dark))';
+
+    function aplicarGradientNoRoot(start, end, angle) {
+      const grad = `linear-gradient(${angle}deg, ${start}, ${end})`;
+      document.documentElement.style.setProperty('--header-gradient', grad);
+    }
+
+    function carregarCorFundoSalva() {
+      try {
+        const corSalva = localStorage.getItem(BG_STORAGE_KEY);
+        if (corSalva) {
+          document.documentElement.style.setProperty('--bg-page-custom', corSalva);
+          corFundoInput.value = corSalva;
+        } else {
+          corFundoInput.value = BG_DEFAULT;
+        }
+      } catch (e) {
+        corFundoInput.value = BG_DEFAULT;
+      }
+    }
+    function salvarCorFundo(cor) {
+      try { localStorage.setItem(BG_STORAGE_KEY, cor); } catch (e) {}
+    }
+    corFundoInput.addEventListener('input', function () {
+      const corEscolhida = corFundoInput.value;
+      document.documentElement.style.setProperty('--bg-page-custom', corEscolhida);
+      salvarCorFundo(corEscolhida);
+    });
+    restaurarFundoBtn.addEventListener('click', function () {
+      document.documentElement.style.setProperty('--bg-page-custom', BG_DEFAULT);
+      corFundoInput.value = BG_DEFAULT;
+      try { localStorage.removeItem(BG_STORAGE_KEY); } catch(e) {}
+    });
+    carregarCorFundoSalva();
+
+    // Header gradient persistence
+    function carregarHeaderGradientSalvo() {
+      try {
+        const dados = localStorage.getItem(HEADER_GRADIENT_KEY);
+        if (dados) {
+          const obj = JSON.parse(dados);
+          if (obj && obj.start && obj.end && typeof obj.angle !== 'undefined') {
+            headerColorStartInput.value = obj.start;
+            headerColorEndInput.value = obj.end;
+            headerAngleSelect.value = String(obj.angle);
+            aplicarGradientNoRoot(obj.start, obj.end, obj.angle);
+            return;
+          }
+        }
+      } catch (e) {}
+      // fallback to defaults
+      try {
+        const computed = getComputedStyle(document.documentElement).getPropertyValue('--header-gradient').trim();
+        const m = computed.match(/linear-gradient\(\s*([0-9\.]+)deg\s*,\s*([^,]+)\s*,\s*([^\)]+)\)/i);
+        if (m) {
+          const angle = parseFloat(m[1]) || 135;
+          const start = m[2].trim();
+          const end = m[3].trim();
+          headerColorStartInput.value = start;
+          headerColorEndInput.value = end;
+          headerAngleSelect.value = String(angle);
+        }
+      } catch (e) {}
+    }
+
+    function salvarHeaderGradient(start, end, angle) {
+      try {
+        localStorage.setItem(HEADER_GRADIENT_KEY, JSON.stringify({ start: start, end: end, angle: Number(angle) }));
+      } catch (e) {}
+    }
+
+    headerColorStartInput.addEventListener('input', function () {
+      const start = headerColorStartInput.value;
+      const end = headerColorEndInput.value;
+      const angle = Number(headerAngleSelect.value) || 135;
+      aplicarGradientNoRoot(start, end, angle);
+      salvarHeaderGradient(start, end, angle);
+      atualizarPreview();
+    });
+    headerColorEndInput.addEventListener('input', function () {
+      const start = headerColorStartInput.value;
+      const end = headerColorEndInput.value;
+      const angle = Number(headerAngleSelect.value) || 135;
+      aplicarGradientNoRoot(start, end, angle);
+      salvarHeaderGradient(start, end, angle);
+      atualizarPreview();
+    });
+    headerAngleSelect.addEventListener('change', function () {
+      const start = headerColorStartInput.value;
+      const end = headerColorEndInput.value;
+      const angle = Number(headerAngleSelect.value) || 135;
+      aplicarGradientNoRoot(start, end, angle);
+      salvarHeaderGradient(start, end, angle);
+      atualizarPreview();
+    });
+
+    restaurarHeaderBtn.addEventListener('click', function () {
+      try {
+        localStorage.removeItem(HEADER_GRADIENT_KEY);
+      } catch (e) {}
+      document.documentElement.style.setProperty('--header-gradient', HEADER_DEFAULT);
+      const m = HEADER_DEFAULT.match(/linear-gradient\(\s*([0-9\.]+)deg\s*,\s*([^,]+)\s*,\s*([^\)]+)\)/i);
+      if (m) {
+        headerAngleSelect.value = String(parseFloat(m[1]) || 135);
+        headerColorStartInput.value = m[2].trim();
+        headerColorEndInput.value = m[3].trim();
+      } else {
+        headerAngleSelect.value = '135';
+        headerColorStartInput.value = '#1e3a8a';
+        headerColorEndInput.value = '#020617';
+      }
+      atualizarPreview();
+    });
+
+    carregarHeaderGradientSalvo();
+
+    // SVG icons reused
+    function svgIcon(tipo) {
+      if (tipo === 'site') return '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6" fill="none"></circle><path d="M3 12h18" stroke="currentColor" stroke-width="1.4" fill="none"></path><path d="M12 3c-2.3 3-2.3 15 0 18M12 3c2.3 3 2.3 15 0 18" stroke="currentColor" stroke-width="1.2" fill="none"></path></svg>';
+      if (tipo === 'facebook') return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 8h2V5h-2.5C11.5 5 10 6.5 10 9v2H8v3h2v5h3v-5h2.1l.9-3H13v-2c0-.6.4-1 1-1z" fill="currentColor"></path></svg>';
+      if (tipo === 'instagram') return '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="5" ry="5" fill="none" stroke="currentColor" stroke-width="1.4"></rect><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.4"></circle><circle cx="17" cy="7" r="1.2" fill="currentColor"></circle></svg>';
+      if (tipo === 'youtube') return '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="10" rx="2" ry="2" fill="currentColor"></rect><path d="M11 9.5v5l4-2.5-4-2.5z" fill="#ffffff"></path></svg>';
+      return '';
+    }
+
+    function criarToolbarButton(labelHtml, cmd, value, titleText) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.dataset.cmd = cmd;
+      if (value) btn.dataset.value = value;
+      btn.innerHTML = labelHtml;
+      if (titleText) btn.title = titleText;
+      btn.style.border = 'none';
+      btn.style.background = 'transparent';
+      btn.style.cursor = 'pointer';
+      btn.style.padding = '0.2rem 0.45rem';
+      btn.style.borderRadius = '8px';
+      btn.addEventListener('mouseover', () => { btn.style.background = 'rgba(0,0,0,0.04)'; });
+      btn.addEventListener('mouseout', () => { btn.style.background = 'transparent'; });
+      return btn;
+    }
+
+    // Font scaling per block (same logic), updated for immediate visual feedback
+    function ajustarEscalaFonteBloco(editor, cmd) {
+      const block = editor.closest('.block-item');
+      if (!block) return;
+      let escala = parseInt(block.dataset.fontScale || '0', 10);
+      if (Number.isNaN(escala)) escala = 0;
+      if (cmd === 'fontLargerBlock') escala = Math.min(6, escala + 1);
+      else if (cmd === 'fontSmallerBlock') escala = Math.max(-2, escala - 1);
+      else if (cmd === 'fontResetBlock') escala = 0;
+      block.dataset.fontScale = String(escala);
+
+      // aplicar estilo visual ao editor imediatamente, para feedback imediato
+      const editorContent = block.querySelector('.editor-content');
+      if (editorContent) {
+        const base = 1; // rem
+        const step = 0.08;
+        const fontSizeRem = (base + (escala * step)).toFixed(3);
+        editorContent.style.fontSize = fontSizeRem + 'rem';
+        // persistir também em dataset para export
+        block.dataset.fontSizeInline = editorContent.style.fontSize || '';
+      }
+
+      // atualizar preview
+      atualizarPreview();
+    }
+
+    function inicializarToolbar(toolbar, editor, fontSelect) {
+      // Prevent mousedown on toolbar buttons from stealing selection in the editor,
+      // but allow selects and inputs to operate normally
+      toolbar.addEventListener('mousedown', function (e) {
+        const btn = e.target.closest('button');
+        if (btn) {
+          e.preventDefault();
+        }
+      });
+
+      toolbar.addEventListener('click', function (event) {
+        const target = event.target.closest('button');
+        if (!target) return;
+        event.preventDefault();
+        const cmd = target.dataset.cmd;
+        const value = target.dataset.value || null;
+        editor.focus();
+
+        // local commands
+        if (cmd === 'fontLargerBlock' || cmd === 'fontSmallerBlock' || cmd === 'fontResetBlock') {
+          ajustarEscalaFonteBloco(editor, cmd);
+          return;
+        }
+        if (cmd === 'undo' || cmd === 'redo') {
+          try { document.execCommand(cmd, false, null); } catch(e) {}
+          atualizarPreview();
+          return;
+        }
+
+        // tratar alinhamentos com fallback robusto
+        if (cmd === 'justifyLeft' || cmd === 'justifyCenter' || cmd === 'justifyRight' || cmd === 'justifyFull') {
+          let alignVal = 'left';
+          if (cmd === 'justifyCenter') alignVal = 'center';
+          else if (cmd === 'justifyRight') alignVal = 'right';
+          else if (cmd === 'justifyFull') alignVal = 'justify';
+
+          let applied = false;
+          try {
+            applied = document.execCommand(cmd, false, null);
+          } catch(e) { applied = false; }
+
+          if (!applied) {
+            editor.style.textAlign = alignVal;
+            const block = editor.closest('.block-item');
+            if (block) block.dataset.align = alignVal;
+          } else {
+            const block = editor.closest('.block-item');
+            if (block) block.dataset.align = alignVal;
+          }
+          atualizarPreview();
+          return;
+        }
+
+        // formatBlock special
+        try {
+          if (cmd === 'formatBlock') {
+            document.execCommand('formatBlock', false, value);
+          } else {
+            document.execCommand(cmd, false, value);
+          }
+        } catch (e) {
+          console.warn('execCommand falhou para', cmd, e);
+          if (cmd === 'fontName' && value) {
+            editor.style.fontFamily = value;
+            const block = editor.closest('.block-item');
+            if (block) block.dataset.fontFamily = value;
+          }
+        }
+        atualizarPreview();
+      });
+
+      if (fontSelect) {
+        fontSelect.addEventListener('change', function () {
+          const value = fontSelect.value;
+          editor.focus();
+          if (value === 'default') {
+            try { document.execCommand('removeFormat', false, null); } catch(e) {}
+            editor.style.fontFamily = '';
+            const block = editor.closest('.block-item');
+            if (block) block.dataset.fontFamily = '';
+          } else {
+            try { document.execCommand('fontName', false, value); } catch(e) {}
+            editor.style.fontFamily = value;
+            const block = editor.closest('.block-item');
+            if (block) block.dataset.fontFamily = value;
+          }
+          atualizarPreview();
+        });
+      }
+
+      editor.addEventListener('input', atualizarPreview);
+      editor.addEventListener('keyup', atualizarPreview);
+    }
+
+    // Adiciona bloco de conteúdo
+    function adicionarBloco(tipoInicial) {
+      blockCounter += 1;
+      const block = document.createElement('div');
+      block.className = 'block-item';
+      block.dataset.blockId = String(blockCounter);
+      block.dataset.fontScale = '0';
+      block.dataset.fontFamily = '';
+      block.dataset.align = '';
+      block.dataset.fontSizeInline = '';
+
+      const header = document.createElement('div');
+      header.className = 'block-header';
+      header.style.display = 'flex';
+      header.style.justifyContent = 'space-between';
+      header.style.alignItems = 'center';
+
+      const headerLeft = document.createElement('div');
+      headerLeft.className = 'block-header-left';
+      headerLeft.style.display = 'flex';
+      headerLeft.style.alignItems = 'center';
+      headerLeft.style.gap = '0.5rem';
+
+      const labelSpan = document.createElement('span');
+      labelSpan.className = 'block-label';
+      labelSpan.textContent = 'Bloco';
+
+      const indexSpan = document.createElement('span');
+      indexSpan.className = 'block-index';
+      indexSpan.textContent = '#' + blockCounter;
+
+      headerLeft.appendChild(labelSpan);
+      headerLeft.appendChild(indexSpan);
+
+      const headerRight = document.createElement('div');
+      headerRight.className = 'block-selects';
+      headerRight.style.display = 'flex';
+      headerRight.style.gap = '0.4rem';
+      headerRight.style.alignItems = 'center';
+
+      const typeSelect = document.createElement('select');
+      typeSelect.className = 'block-type-select';
+      typeSelect.innerHTML = `<option value="texto">Texto principal</option><option value="citacao">Citações</option><option value="impactante">Impactante</option>`;
+      if (tipoInicial) typeSelect.value = tipoInicial;
+
+      const formatSelect = document.createElement('select');
+      formatSelect.className = 'block-format-select';
+      formatSelect.innerHTML = `<option value="padrao">Formatação padrão</option><option value="forte">Maior destaque</option><option value="suave">Destaque suave</option><option value="menor">Texto menor</option>`;
+
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.className = 'btn btn-secondary';
+      removeBtn.textContent = 'Remover';
+      removeBtn.addEventListener('click', function () { blocksContainer.removeChild(block); atualizarPreview(); });
+
+      headerRight.appendChild(typeSelect);
+      headerRight.appendChild(formatSelect);
+
+      // inserir botões mover (para cima, para baixo)
+      const moveUpBtn = document.createElement('button');
+      moveUpBtn.type = 'button';
+      moveUpBtn.className = 'btn btn-secondary';
+      moveUpBtn.textContent = '↑';
+      moveUpBtn.title = 'Mover bloco para cima';
+      moveUpBtn.style.minWidth = '38px';
+      moveUpBtn.addEventListener('click', function () {
+        const prev = block.previousElementSibling;
+        if (prev) {
+          blocksContainer.insertBefore(block, prev);
+          atualizarPreview();
+        }
+      });
+
+      const moveDownBtn = document.createElement('button');
+      moveDownBtn.type = 'button';
+      moveDownBtn.className = 'btn btn-secondary';
+      moveDownBtn.textContent = '↓';
+      moveDownBtn.title = 'Mover bloco para baixo';
+      moveDownBtn.style.minWidth = '38px';
+      moveDownBtn.addEventListener('click', function () {
+        const next = block.nextElementSibling;
+        if (next) {
+          blocksContainer.insertBefore(next, block);
+          atualizarPreview();
+        }
+      });
+
+      headerRight.appendChild(moveUpBtn);
+      headerRight.appendChild(moveDownBtn);
+      headerRight.appendChild(removeBtn);
+
+      header.appendChild(headerLeft);
+      header.appendChild(headerRight);
+
+      const contentWrapper = document.createElement('div');
+      contentWrapper.className = 'block-content';
+
+      const editorWrapper = document.createElement('div');
+      editorWrapper.className = 'editor-wrapper';
+
+      const toolbar = document.createElement('div');
+      toolbar.className = 'editor-toolbar';
+      toolbar.style.display = 'flex';
+      toolbar.style.flexWrap = 'wrap';
+      toolbar.style.gap = '0.25rem';
+      toolbar.style.padding = '0.3rem 0.4rem';
+      toolbar.style.background = '#e0e7ff';
+      toolbar.style.borderBottom = '1px solid #cbd5f5';
+
+      // toolbar buttons
+      toolbar.appendChild(criarToolbarButton('<strong>B</strong>', 'bold', null, 'Negrito'));
+      toolbar.appendChild(criarToolbarButton('<em>I</em>', 'italic', null, 'Itálico'));
+      toolbar.appendChild(criarToolbarButton('<span><u>U</u></span>', 'underline', null, 'Sublinhado'));
+
+      const sep0 = document.createElement('span'); sep0.className = 'toolbar-separator'; sep0.style.width='1px'; sep0.style.height='20px'; sep0.style.background='#cbd5f5'; sep0.style.margin='0 0.2rem';
+      toolbar.appendChild(sep0);
+
+      toolbar.appendChild(criarToolbarButton('↶', 'undo', null, 'Desfazer'));
+      toolbar.appendChild(criarToolbarButton('↷', 'redo', null, 'Refazer'));
+
+      const sep1 = document.createElement('span'); sep1.className = 'toolbar-separator'; sep1.style.width='1px'; sep1.style.height='20px'; sep1.style.background='#cbd5f5'; sep1.style.margin='0 0.2rem';
+      toolbar.appendChild(sep1);
+
+      toolbar.appendChild(criarToolbarButton('• Lista', 'insertUnorderedList', null, 'Lista com marcadores'));
+      toolbar.appendChild(criarToolbarButton('1. Lista', 'insertOrderedList', null, 'Lista numerada'));
+
+      const sep2 = document.createElement('span'); sep2.className = 'toolbar-separator'; sep2.style.width='1px'; sep2.style.height='20px'; sep2.style.background='#cbd5f5'; sep2.style.margin='0 0.2rem';
+      toolbar.appendChild(sep2);
+
+      toolbar.appendChild(criarToolbarButton('A-', 'fontSmallerBlock', null, 'Diminuir tamanho'));
+      toolbar.appendChild(criarToolbarButton('A', 'fontResetBlock', null, 'Tamanho padrão'));
+      toolbar.appendChild(criarToolbarButton('A+', 'fontLargerBlock', null, 'Aumentar tamanho'));
+
+      const sep3 = document.createElement('span'); sep3.className = 'toolbar-separator'; sep3.style.width='1px'; sep3.style.height='20px'; sep3.style.background='#cbd5f5'; sep3.style.margin='0 0.2rem';
+      toolbar.appendChild(sep3);
+
+      toolbar.appendChild(criarToolbarButton('⟸', 'justifyLeft', null, 'Alinhar esquerda'));
+      toolbar.appendChild(criarToolbarButton('≡', 'justifyFull', null, 'Justificar'));
+      toolbar.appendChild(criarToolbarButton('⋯', 'justifyCenter', null, 'Centralizar'));
+      toolbar.appendChild(criarToolbarButton('⟹', 'justifyRight', null, 'Alinhar direita'));
+
+      const sep4 = document.createElement('span'); sep4.className = 'toolbar-separator'; sep4.style.width='1px'; sep4.style.height='20px'; sep4.style.background='#cbd5f5'; sep4.style.margin='0 0.2rem';
+      toolbar.appendChild(sep4);
+
+      toolbar.appendChild(criarToolbarButton('Parágrafo', 'formatBlock', 'p', 'Parágrafo'));
+      toolbar.appendChild(criarToolbarButton('Citação', 'formatBlock', 'blockquote', 'Citação'));
+
+      const sep5 = document.createElement('span'); sep5.className = 'toolbar-separator'; sep5.style.width='1px'; sep5.style.height='20px'; sep5.style.background='#cbd5f5'; sep5.style.margin='0 0.2rem';
+      toolbar.appendChild(sep5);
+
+      const fontSelect = document.createElement('select');
+      fontSelect.className = 'toolbar-font-select';
+      fontSelect.title = 'Escolher família de fontes para este bloco';
+      fontSelect.innerHTML = `
+        <option value="default">Fonte padrão do boletim</option>
+        <option value="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">Sistema (Segoe UI)</option>
+        <option value="Georgia, 'Times New Roman', serif">Serif (Georgia / Times)</option>
+        <option value="'Times New Roman', Times, serif">Times New Roman</option>
+        <option value="Garamond, 'Times New Roman', serif">Garamond</option>
+        <option value="'Palatino Linotype', 'Book Antiqua', Palatino, serif">Palatino</option>
+        <option value="Arial, Helvetica, sans-serif">Arial / Helvetica</option>
+        <option value="'Segoe UI', Tahoma, Geneva, Verdana, sans-serif">Segoe UI</option>
+        <option value="Verdana, Geneva, sans-serif">Verdana</option>
+        <option value="Tahoma, Geneva, sans-serif">Tahoma</option>
+        <option value="'Trebuchet MS', Helvetica, sans-serif">Trebuchet MS</option>
+        <option value="'Lucida Sans Unicode', 'Lucida Grande', sans-serif">Lucida Sans</option>
+        <option value="'Open Sans', Arial, sans-serif">Open Sans</option>
+        <option value="Roboto, Arial, sans-serif">Roboto</option>
+        <option value="Lato, Arial, sans-serif">Lato</option>
+        <option value="'Courier New', Courier, monospace">Courier New</option>
+        <option value="Consolas, 'Courier New', monospace">Consolas</option>
+      `;
+      toolbar.appendChild(fontSelect);
+
+      const sep6 = document.createElement('span'); sep6.className = 'toolbar-separator'; sep6.style.width='1px'; sep6.style.height='20px'; sep6.style.background='#cbd5f5'; sep6.style.margin='0 0.2rem';
+      toolbar.appendChild(sep6);
+
+      toolbar.appendChild(criarToolbarButton('Limpar', 'removeFormat', null, 'Remover formatações'));
+
+      // color picker para aplicar cor ao bloco
+      const colorInput = document.createElement('input');
+      colorInput.type = 'color';
+      colorInput.className = 'toolbar-color-input';
+      colorInput.title = 'Cor do texto deste bloco';
+      colorInput.value = '#111827';
+      colorInput.style.width = '36px';
+      colorInput.style.height = '32px';
+      colorInput.style.border = 'none';
+      colorInput.style.padding = '0';
+      colorInput.style.marginLeft = '0.25rem';
+
+      // função utilitária para envolver seleção com span colorido (fallback)
+      function wrapSelectionWithSpan(editorEl, color) {
+        const sel = window.getSelection();
+        if (!sel || sel.rangeCount === 0) return false;
+        const range = sel.getRangeAt(0);
+        if (!editorEl.contains(range.startContainer) || !editorEl.contains(range.endContainer)) return false;
+        try {
+          const frag = range.extractContents();
+          const span = document.createElement('span');
+          span.style.color = color;
+          span.appendChild(frag);
+          range.insertNode(span);
+          sel.removeAllRanges();
+          const newRange = document.createRange();
+          newRange.setStartAfter(span);
+          newRange.collapse(true);
+          sel.addRange(newRange);
+          return true;
+        } catch (e) {
+          console.warn('wrapSelectionWithSpan falhou', e);
+          return false;
+        }
+      }
+
+      // lógica que aplica cor à seleção (se houver) ou ao bloco inteiro
+      colorInput.addEventListener('input', function () {
+        const color = colorInput.value;
+        const sel = window.getSelection();
+        const hasSelection = sel && !sel.isCollapsed && sel.rangeCount > 0 && editor.contains(sel.anchorNode);
+
+        if (hasSelection) {
+          let applied = false;
+          try {
+            try { document.execCommand('styleWithCSS', false, true); } catch(e) {}
+            applied = document.execCommand('foreColor', false, color);
+          } catch (e) {
+            applied = false;
+          }
+          if (!applied) {
+            wrapSelectionWithSpan(editor, color);
+          }
+        } else {
+          editor.style.color = color;
+          const block = editor.closest('.block-item');
+          if (block) block.dataset.color = color;
+        }
+        atualizarPreview();
+      });
+      toolbar.appendChild(colorInput);
+
+      const editor = document.createElement('div');
+      editor.className = 'editor-content';
+      editor.contentEditable = 'true';
+      editor.dataset.placeholder = gerarPlaceholderPorTipo(typeSelect.value);
+      editor.style.minHeight = '90px';
+      editor.style.padding = '0.55rem 0.7rem';
+      editor.style.background = '#ffffff';
+      editor.style.color = colorInput.value;
+
+      typeSelect.addEventListener('change', function () {
+        editor.dataset.placeholder = gerarPlaceholderPorTipo(typeSelect.value);
+        atualizarPreview();
+      });
+      formatSelect.addEventListener('change', atualizarPreview);
+
+      inicializarToolbar(toolbar, editor, fontSelect);
+
+      editorWrapper.appendChild(toolbar);
+      editorWrapper.appendChild(editor);
+      contentWrapper.appendChild(editorWrapper);
+
+      block.appendChild(header);
+      block.appendChild(contentWrapper);
+      blocksContainer.appendChild(block);
+
+      atualizarPreview();
+    }
+
+    function gerarPlaceholderPorTipo(tipo) {
+      if (tipo === 'citacao') return 'Digite aqui as citações deste bloco. Use itálico, parágrafos ou listas, se desejar.';
+      if (tipo === 'impactante') return 'Digite aqui um texto impactante, que receberá forte destaque visual no boletim.';
+      return 'Digite o texto principal deste bloco. Use negrito, itálico, listas, alinhamento, tamanhos e fontes.';
+    }
+
+    function htmlParaTextoSimples(html) {
+      if (!html) return '';
+      return html.replace(/<style[\s\S]*?<\/style>/gi, '').replace(/<script[\s\S]*?<\/script>/gi, '').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim();
+    }
+
+    function coletarBlocos() {
+      const blocos = [];
+      const blockElements = blocksContainer.querySelectorAll('.block-item');
+      blockElements.forEach(function (blockEl) {
+        const typeSelect = blockEl.querySelector('.block-type-select');
+        const formatSelect = blockEl.querySelector('.block-format-select');
+        const editor = blockEl.querySelector('.editor-content');
+        const tipo = typeSelect ? typeSelect.value : 'texto';
+        const formato = formatSelect ? formatSelect.value : 'padrao';
+        const html = editor ? editor.innerHTML.trim() : '';
+        const textoSimples = htmlParaTextoSimples(html);
+        const fontScale = parseInt(blockEl.dataset.fontScale || '0', 10) || 0;
+        const blockColor = (editor && editor.style && editor.style.color) ? editor.style.color : (blockEl.dataset.color || '');
+        const blockFontFamily = (blockEl.dataset.fontFamily) ? blockEl.dataset.fontFamily : (editor && editor.style && editor.style.fontFamily ? editor.style.fontFamily : '');
+        if (!textoSimples) return;
+        blocos.push({
+          tipo: tipo,
+          formato: formato,
+          html: html,
+          fontScale: fontScale,
+          color: blockColor,
+          fontFamily: blockFontFamily,
+          align: (blockEl.dataset.align || (editor && editor.style && editor.style.textAlign) || ''),
+          fontSizeInline: (blockEl.dataset.fontSizeInline || (editor && editor.style && editor.style.fontSize) || '')
+        });
+      });
+      return blocos;
+    }
+
+    function aplicarFormatoClasse(elemento, formato) {
+      if (formato === 'forte') elemento.classList.add('format-strong');
+      if (formato === 'suave') elemento.classList.add('format-soft');
+      if (formato === 'menor') elemento.classList.add('format-small');
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, function (s) {
+        switch (s) {
+          case '&': return '&amp;'; case '<': return '&lt;'; case '>': return '&gt;'; case '"': return '&quot;'; case "'": return '&#39;';
+          default: return s;
+        }
+      });
+    }
+
+    function normalizarUrl(url) {
+      if (!url) return '';
+      const trimmed = String(url).trim();
+      if (!trimmed) return '';
+      if (!/^https?:\/\//i.test(trimmed)) return 'https://' + trimmed;
+      return trimmed;
+    }
+
+    function criarIconeLink(url, tipo, titleText) {
+      if (!url) return null;
+      const a = document.createElement('a');
+      a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.className = 'footer-icon-link footer-icon-' + tipo;
+      if (titleText) a.title = titleText;
+      a.innerHTML = svgIcon(tipo);
+      return a;
+    }
+
+    // Função utilitária para interpretar data do input[type=date] em timezone local
+    function parseDateInputToLocal(dateStr) {
+      if (!dateStr) return null;
+      const parts = dateStr.split('-');
+      if (parts.length !== 3) return new Date(dateStr);
+      const y = parseInt(parts[0], 10);
+      const m = parseInt(parts[1], 10);
+      const d = parseInt(parts[2], 10);
+      return new Date(y, m - 1, d);
+    }
+
+    // Monta boletim no container de pré-visualização
+    function montarBoletimNoContainer(containerEl, dados, imagemSrc) {
+      containerEl.innerHTML = '';
+      const boletim = document.createElement('article');
+      boletim.className = 'boletim';
+
+      const header = document.createElement('header');
+      header.className = 'boletim-header';
+
+      try {
+        const grad = getComputedStyle(document.documentElement).getPropertyValue('--header-gradient') || '';
+        if (grad) header.style.background = grad.trim();
+      } catch (e) {}
+
+      const headerInner = document.createElement('div');
+      headerInner.className = 'boletim-header-inner';
+
+      const logo = document.createElement('img');
+      logo.className = 'boletim-logo';
+      logo.src = 'http://anutricaodaigreja.com/IBRR_V_New_BRANCA.png';
+      logo.alt = 'Logo da Primeira Igreja Batista Reformada em Russas';
+
+      const headerText = document.createElement('div');
+      headerText.className = 'boletim-header-text';
+
+      const mainTitle = document.createElement('div');
+      mainTitle.className = 'boletim-main-title';
+      mainTitle.textContent = 'Boletim Pastoral';
+
+      const tituloEl = document.createElement('div');
+      tituloEl.className = 'boletim-titulo';
+      tituloEl.textContent = dados.titulo || '';
+      if (dados.tituloColor) tituloEl.style.color = dados.tituloColor;
+      if (dados.tituloFont && dados.tituloFont !== 'default') tituloEl.style.fontFamily = dados.tituloFont;
+
+      const igrejaEl = document.createElement('div');
+      igrejaEl.className = 'boletim-igreja';
+      igrejaEl.textContent = dados.igreja || '';
+      if (dados.igrejaColor) igrejaEl.style.color = dados.igrejaColor;
+      if (dados.igrejaFont && dados.igrejaFont !== 'default') igrejaEl.style.fontFamily = dados.igrejaFont;
+
+      const metaEl = document.createElement('div');
+      metaEl.className = 'boletim-meta';
+
+      const autorSpan = document.createElement('span');
+      autorSpan.textContent = 'Autor: ' + (dados.autor || '');
+      if (dados.autorColor) autorSpan.style.color = dados.autorColor;
+      if (dados.autorFont && dados.autorFont !== 'default') autorSpan.style.fontFamily = dados.autorFont;
+      metaEl.appendChild(autorSpan);
+
+      if (dados.data) {
+        const dataSpan = document.createElement('span');
+        dataSpan.textContent = 'Data: ' + dados.data;
+        if (dados.dataColor) dataSpan.style.color = dados.dataColor;
+        if (dados.dataFont && dados.dataFont !== 'default') dataSpan.style.fontFamily = dados.dataFont;
+        metaEl.appendChild(dataSpan);
+      }
+
+      headerText.appendChild(mainTitle);
+      headerText.appendChild(tituloEl);
+      headerText.appendChild(igrejaEl);
+      headerText.appendChild(metaEl);
+
+      headerInner.appendChild(logo);
+      headerInner.appendChild(headerText);
+      header.appendChild(headerInner);
+      boletim.appendChild(header);
+
+      const content = document.createElement('div');
+      content.className = 'boletim-content';
+
+      if (imagemSrc) {
+        const img = document.createElement('img');
+        img.className = 'boletim-imagem';
+        img.src = imagemSrc;
+        img.alt = 'Imagem do boletim pastoral';
+        content.appendChild(img);
+      }
+
+      dados.blocos.forEach(function (blocoDados) {
+        const formato = blocoDados.formato || 'padrao';
+        const escalaClasse = 'font-scale-' + (blocoDados.fontScale || 0);
+        const aplicarEstiloInline = function (el) {
+          if (blocoDados.color) el.style.color = blocoDados.color;
+          if (blocoDados.fontFamily && blocoDados.fontFamily !== 'default') el.style.fontFamily = blocoDados.fontFamily;
+          if (blocoDados.align) el.style.textAlign = blocoDados.align;
+          if (blocoDados.fontSizeInline) el.style.fontSize = blocoDados.fontSizeInline;
+        };
+
+        if (blocoDados.tipo === 'texto') {
+          const blocoTexto = document.createElement('div');
+          blocoTexto.className = 'boletim-texto-bloco ' + escalaClasse;
+          aplicarFormatoClasse(blocoTexto, formato);
+          aplicarEstiloInline(blocoTexto);
+          blocoTexto.insertAdjacentHTML('beforeend', blocoDados.html);
+          content.appendChild(blocoTexto);
+        }
+        if (blocoDados.tipo === 'citacao') {
+          const blocoCitacoes = document.createElement('div');
+          blocoCitacoes.className = 'boletim-citacoes-bloco ' + escalaClasse;
+          aplicarFormatoClasse(blocoCitacoes, formato);
+          const citDiv = document.createElement('div');
+          citDiv.className = 'boletim-citacao-item';
+          aplicarEstiloInline(citDiv);
+          citDiv.innerHTML = blocoDados.html;
+          blocoCitacoes.appendChild(citDiv);
+          content.appendChild(blocoCitacoes);
+        }
+        if (blocoDados.tipo === 'impactante') {
+          const blocoImpactante = document.createElement('div');
+          blocoImpactante.className = 'boletim-impactante-bloco ' + escalaClasse;
+          aplicarFormatoClasse(blocoImpactante, formato);
+          aplicarEstiloInline(blocoImpactante);
+          blocoImpactante.innerHTML = blocoDados.html;
+          content.appendChild(blocoImpactante);
+        }
+      });
+
+      boletim.appendChild(content);
+
+      // Rodapé
+      const rodape = dados.rodape || {};
+      const pastor = dados.rodapePastor || {};
+
+      const rodapeIgreja = rodape.igreja || dados.igreja || '';
+      const rodapeEndereco = rodape.endereco || '';
+
+      const siteUrl = normalizarUrl(rodape.site);
+      const fbUrl = normalizarUrl(rodape.facebook);
+      const igUrl = normalizarUrl(rodape.instagram);
+      const ytUrl = normalizarUrl(rodape.youtube);
+
+      const pastorSiteUrl = normalizarUrl(pastor.site);
+      const pastorFbUrl = normalizarUrl(pastor.facebook);
+      const pastorIgUrl = normalizarUrl(pastor.instagram);
+      const pastorYtUrl = normalizarUrl(pastor.youtube);
+
+      const temLinksIgreja = siteUrl || fbUrl || igUrl || ytUrl;
+      const temLinksPastor = pastorSiteUrl || pastorFbUrl || pastorIgUrl || pastorYtUrl;
+
+      if (rodapeIgreja || rodapeEndereco || temLinksIgreja || temLinksPastor) {
+        const footer = document.createElement('footer');
+        footer.className = 'boletim-footer';
+        if (rodapeIgreja || rodapeEndereco) {
+          const entityInfoDiv = document.createElement('div');
+          entityInfoDiv.className = 'boletim-footer-entity boletim-footer-entity-info';
+          if (rodapeIgreja) {
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'boletim-footer-entity-name';
+            nameSpan.textContent = rodapeIgreja;
+            entityInfoDiv.appendChild(nameSpan);
+          }
+          if (rodapeEndereco) {
+            const addressSpan = document.createElement('span');
+            addressSpan.className = 'boletim-footer-entity-address';
+            addressSpan.textContent = rodapeEndereco;
+            entityInfoDiv.appendChild(addressSpan);
+          }
+          footer.appendChild(entityInfoDiv);
+        }
+
+        if (temLinksIgreja) {
+          const entitySocialDiv = document.createElement('div');
+          entitySocialDiv.className = 'boletim-footer-entity';
+          const socialLabelSpan = document.createElement('span');
+          socialLabelSpan.className = 'boletim-footer-entity-name';
+          socialLabelSpan.textContent = rodapeIgreja || 'Igreja';
+          entitySocialDiv.appendChild(socialLabelSpan);
+
+          const iconsDiv = document.createElement('div');
+          iconsDiv.className = 'boletim-footer-icons';
+          const iconSite = criarIconeLink(siteUrl, 'site', 'Site da igreja'); if (iconSite) iconsDiv.appendChild(iconSite);
+          const iconFb = criarIconeLink(fbUrl, 'facebook', 'Facebook da igreja'); if (iconFb) iconsDiv.appendChild(iconFb);
+          const iconIg = criarIconeLink(igUrl, 'instagram', 'Instagram da igreja'); if (iconIg) iconsDiv.appendChild(iconIg);
+          const iconYt = criarIconeLink(ytUrl, 'youtube', 'YouTube da igreja'); if (iconYt) iconsDiv.appendChild(iconYt);
+
+          if (iconsDiv.childElementCount > 0) { entitySocialDiv.appendChild(iconsDiv); footer.appendChild(entitySocialDiv); }
+        }
+
+        if (temLinksPastor) {
+          const entityDivPastor = document.createElement('div');
+          entityDivPastor.className = 'boletim-footer-entity';
+          const nameSpan = document.createElement('span');
+          nameSpan.className = 'boletim-footer-entity-name';
+          nameSpan.textContent = 'Pr. Elivando Mesquita';
+          entityDivPastor.appendChild(nameSpan);
+
+          const iconsDivPastor = document.createElement('div');
+          iconsDivPastor.className = 'boletim-footer-icons';
+          const iconSiteP = criarIconeLink(pastorSiteUrl, 'site', 'Site do Pr. Elivando Mesquita'); if (iconSiteP) iconsDivPastor.appendChild(iconSiteP);
+          const iconFbP = criarIconeLink(pastorFbUrl, 'facebook', 'Facebook do Pr. Elivando Mesquita'); if (iconFbP) iconsDivPastor.appendChild(iconFbP);
+          const iconIgP = criarIconeLink(pastorIgUrl, 'instagram', 'Instagram do Pr. Elivando Mesquita'); if (iconIgP) iconsDivPastor.appendChild(iconIgP);
+          const iconYtP = criarIconeLink(pastorYtUrl, 'youtube', 'YouTube do Pr. Elivando Mesquita'); if (iconYtP) iconsDivPastor.appendChild(iconYtP);
+
+          if (iconsDivPastor.childElementCount > 0) { entityDivPastor.appendChild(iconsDivPastor); footer.appendChild(entityDivPastor); }
+        }
+
+        boletim.appendChild(footer);
+      }
+
+      containerEl.appendChild(boletim);
+    }
+
+    // Gera HTML standalone, com estilos aplicados às escolhas de cor e fonte
+    function gerarHTMLBoletimPaginaCompleta(dados, imagemSrc, headerGradient) {
+      const headerBg = headerGradient || 'linear-gradient(135deg, #1e3a8a, #020617)';
+      const estilos = `
+        @page { size: A4; margin: 2cm; }
+        body { margin:0; padding:0; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f5f5f0; color: #111827; line-height:1.6; }
+        .wrapper { max-width:800px; margin:2rem auto; padding:0 1rem 2.5rem; }
+        .boletim { background:#ffffff; border-radius:18px; padding:2rem; border:1px solid #e5e7eb; box-shadow:0 22px 50px rgba(15,23,42,0.16); }
+        .boletim-header { text-align:center; padding:1rem 1.2rem 1.2rem; margin-bottom:1.6rem; position:relative; display:flex; flex-direction:column; align-items:center; gap:0.15rem; background: ${headerBg}; color:#f9fafb; border-radius:14px 14px 10px 10px; background-repeat:no-repeat; background-position:center center; background-size:140% 100%; }
+        .boletim-header-inner { display:flex; align-items:center; justify-content:space-between; gap:1.5rem; width:100%; }
+        .boletim-logo { max-height:80px; width:auto; flex-shrink:0; }
+        .boletim-header-text { flex:1; text-align:center; }
+        .boletim-main-title { font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:0.26em; color:#e5e7eb; }
+        .boletim-igreja { font-size:0.9rem; font-weight:600; color:#e5e7eb; margin-top:0.15rem; }
+        .boletim-titulo { font-size:1.8rem; font-weight:700; color:#fef9c3; margin-top:0.35rem; margin-bottom:0.15rem; }
+        .boletim-meta { font-size:0.86rem; color:#cbd5f5; margin-top:0.4rem; display:flex; flex-wrap:wrap; gap:0.35rem; justify-content:center; }
+        .boletim-content { font-size:0.98rem; color:#111827; font-family: Georgia, "Times New Roman", serif; }
+        .boletim-imagem { float:right; margin-left:1.8rem; margin-bottom:1rem; max-width:42%; border-radius:18px; border:1px solid #e5e7eb; object-fit:cover; box-shadow:0 14px 24px rgba(15,23,42,0.22); display:block; shape-outside: margin-box; }
+        .boletim-citacao-item { margin-bottom:0.4rem; font-style:italic; position:relative; padding-left:1rem; color:#1f2937; border-left:3px solid #1e3a8a; }
+        .boletim-impactante-bloco { background: radial-gradient(circle at 10% 0, #1f2937, #020617); color:#f9fafb; border-radius:14px; padding:1.1rem 1.3rem; border-left:4px solid #d4a15c; margin-bottom:1.25rem; box-shadow:0 18px 40px rgba(15,23,42,0.6); font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+        .format-strong { background:#e5e7eb; border-left:4px solid #1e3a8a; border-radius:12px; padding:0.85rem 1rem; }
+        .format-soft { background:#f3f4ff; border-left:3px solid #cbd5f5; border-radius:12px; padding:0.8rem 1rem; }
+        .format-small { font-size:0.9em; color:#4b5563; }
+
+        .boletim-texto-bloco.font-scale--2, .boletim-citacoes-bloco.font-scale--2, .boletim-impactante-bloco.font-scale--2 { font-size: 0.84rem; }
+        .boletim-texto-bloco.font-scale--1, .boletim-citacoes-bloco.font-scale--1, .boletim-impactante-bloco.font-scale--1 { font-size: 0.92rem; }
+        .boletim-texto-bloco.font-scale-0, .boletim-citacoes-bloco.font-scale-0, .boletim-impactante-bloco.font-scale-0 { font-size: 1rem; }
+        .boletim-texto-bloco.font-scale-1, .boletim-citacoes-bloco.font-scale-1, .boletim-impactante-bloco.font-scale-1 { font-size: 1.08rem; }
+        .boletim-texto-bloco.font-scale-2, .boletim-citacoes-bloco.font-scale-2, .boletim-impactante-bloco.font-scale-2 { font-size: 1.16rem; }
+        .boletim-texto-bloco.font-scale-3, .boletim-citacoes-bloco.font-scale-3, .boletim-impactante-bloco.font-scale-3 { font-size: 1.24rem; }
+        .boletim-texto-bloco.font-scale-4, .boletim-citacoes-bloco.font-scale-4, .boletim-impactante-bloco.font-scale-4 { font-size: 1.32rem; }
+        .boletim-texto-bloco.font-scale-5, .boletim-citacoes-bloco.font-scale-5, .boletim-impactante-bloco.font-scale-5 { font-size: 1.40rem; }
+        .boletim-texto-bloco.font-scale-6, .boletim-citacoes-bloco.font-scale-6, .boletim-impactante-bloco.font-scale-6 { font-size: 1.48rem; }
+
+        .boletim-footer { margin-top: 1.2rem; padding: 0.8rem 1rem 0.9rem; font-size: 0.78rem; display: flex; flex-direction: column; gap: 0.35rem; align-items: center; background: linear-gradient(135deg, #1e3a8a, #020617); color: #e5e7eb; border-radius: 10px 10px 0 0; border-top: 1px solid rgba(250, 204, 21, 0.35); }
+        .boletim-footer-entity { display: flex; align-items: center; justify-content: center; gap: 0.5rem; flex-wrap: wrap; }
+        .boletim-footer-entity-info { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 0.15rem; }
+        .boletim-footer-entity-name { font-weight: 600; color: #f9fafb; }
+        .boletim-footer-entity-address { font-weight: 400; color: #d1d5db; }
+        .boletim-footer-icons { display: inline-flex; align-items: center; gap: 0.25rem; flex-wrap: wrap; }
+        .footer-icon-link { width: 22px; height: 22px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.3); border: 1px solid rgba(148, 163, 184, 0.85); text-decoration: none; color: #f9fafb; transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease, transform 0.08s ease; }
+        .footer-icon-link svg { width: 13px; height: 13px; display: block; }
+        .footer-icon-link:hover { background: #facc15; border-color: #facc15; color: #1f2937; transform: translateY(-0.5px); }
+
+        @media print {
+          * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          body { background: #ffffff !important; }
+          .wrapper { max-width: 100%; margin: 0; padding: 0; }
+          .boletim { box-shadow: none; border-radius: 0; border: none; padding: 0; }
+          .boletim-header { background: #1f2937 !important; color: #ffffff !important; page-break-after: avoid; }
+          .boletim-main-title, .boletim-igreja, .boletim-meta { color: #e5e7eb !important; }
+          .boletim-titulo { color: #ffffff !important; }
+          .boletim-content { page-break-inside: auto; break-inside: auto; }
+          .boletim-texto-bloco, .boletim-impactante-bloco, .boletim-citacoes-bloco { page-break-inside: auto; break-inside: auto; }
+          .boletim-footer { background: #1f2937 !important; color: #ffffff !important; border-top: 1px solid #4b5563 !important; }
+          .boletim-footer-entity-name, .boletim-footer-entity-address { color: #e5e7eb !important; }
+        }
+
+        @media (max-width: 640px) {
+          .boletim-header-inner { flex-direction: column; }
+          .boletim-header-text { text-align: center; }
+        }
+      `;
+
+      function styleInline(propColor, propFont) {
+        let s = '';
+        if (propColor) s += `color:${propColor};`;
+        if (propFont && propFont !== 'default') s += `font-family:${propFont};`;
+        return s ? ` style="${s}"` : '';
+      }
+
+      const tituloHtml = `<div class="boletim-titulo"${styleInline(dados.tituloColor, dados.tituloFont)}>${escapeHtml(dados.titulo || '')}</div>`;
+      const igrejaHtml = `<div class="boletim-igreja"${styleInline(dados.igrejaColor, dados.igrejaFont)}>${escapeHtml(dados.igreja || '')}</div>`;
+
+      const autorSpanHtml = `<span${styleInline(dados.autorColor, dados.autorFont)}>Autor: ${escapeHtml(dados.autor || '')}</span>`;
+      const dataSpanHtml = dados.data ? `<span${styleInline(dados.dataColor, dados.dataFont)}>Data: ${escapeHtml(dados.data)}</span>` : '';
+
+      const imagemHtml = imagemSrc ? `<img class="boletim-imagem" src="${imagemSrc}" alt="Imagem do boletim pastoral">` : '';
+
+      let blocosHtml = '';
+      dados.blocos.forEach(function (blocoDados) {
+        const formatoClasse = blocoDados.formato === 'forte' ? ' format-strong' : blocoDados.formato === 'suave' ? ' format-soft' : blocoDados.formato === 'menor' ? ' format-small' : '';
+        const escalaClasse = ' font-scale-' + (blocoDados.fontScale || 0);
+        let styleAttr = '';
+        if (blocoDados.color) styleAttr += `color:${blocoDados.color};`;
+        if (blocoDados.fontFamily && blocoDados.fontFamily !== 'default') styleAttr += `font-family:${blocoDados.fontFamily};`;
+        if (blocoDados.align) styleAttr += `text-align:${blocoDados.align};`;
+        if (blocoDados.fontSizeInline) styleAttr += `font-size:${blocoDados.fontSizeInline};`;
+        const styleHtml = styleAttr ? ` style="${styleAttr}"` : '';
+
+        if (blocoDados.tipo === 'texto') {
+          blocosHtml += `<div class="boletim-texto-bloco${formatoClasse}${escalaClasse}"${styleHtml}>${blocoDados.html}</div>`;
+        }
+        if (blocoDados.tipo === 'citacao') {
+          blocosHtml += `<div class="boletim-citacoes-bloco${formatoClasse}${escalaClasse}"><div class="boletim-citacao-item"${styleHtml}>${blocoDados.html}</div></div>`;
+        }
+        if (blocoDados.tipo === 'impactante') {
+          blocosHtml += `<div class="boletim-impactante-bloco${formatoClasse}${escalaClasse}"${styleHtml}>${blocoDados.html}</div>`;
+        }
+      });
+
+      const rodape = dados.rodape || {};
+      const pastor = dados.rodapePastor || {};
+      const siteUrl = normalizarUrl(rodape.site);
+      const fbUrl = normalizarUrl(rodape.facebook);
+      const igUrl = normalizarUrl(rodape.instagram);
+      const ytUrl = normalizarUrl(rodape.youtube);
+      const pastorSiteUrl = normalizarUrl(pastor.site);
+      const pastorFbUrl = normalizarUrl(pastor.facebook);
+      const pastorIgUrl = normalizarUrl(pastor.instagram);
+      const pastorYtUrl = normalizarUrl(pastor.youtube);
+
+      let iconsHtmlIgreja = '';
+      if (siteUrl) iconsHtmlIgreja += `<a href="${siteUrl}" target="_blank" rel="noopener noreferrer" class="footer-icon-link footer-icon-site" title="Site da igreja">${svgIcon('site')}</a>`;
+      if (fbUrl) iconsHtmlIgreja += `<a href="${fbUrl}" target="_blank" rel="noopener noreferrer" class="footer-icon-link footer-icon-facebook" title="Facebook da igreja">${svgIcon('facebook')}</a>`;
+      if (igUrl) iconsHtmlIgreja += `<a href="${igUrl}" target="_blank" rel="noopener noreferrer" class="footer-icon-link footer-icon-instagram" title="Instagram da igreja">${svgIcon('instagram')}</a>`;
+      if (ytUrl) iconsHtmlIgreja += `<a href="${ytUrl}" target="_blank" rel="noopener noreferrer" class="footer-icon-link footer-icon-youtube" title="YouTube da igreja">${svgIcon('youtube')}</a>`;
+
+      let iconsHtmlPastor = '';
+      if (pastorSiteUrl) iconsHtmlPastor += `<a href="${pastorSiteUrl}" target="_blank" rel="noopener noreferrer" class="footer-icon-link footer-icon-site" title="Site do Pr. Elivando Mesquita">${svgIcon('site')}</a>`;
+      if (pastorFbUrl) iconsHtmlPastor += `<a href="${pastorFbUrl}" target="_blank" rel="noopener noreferrer" class="footer-icon-link footer-icon-facebook" title="Facebook do Pr. Elivando Mesquita">${svgIcon('facebook')}</a>`;
+      if (pastorIgUrl) iconsHtmlPastor += `<a href="${pastorIgUrl}" target="_blank" rel="noopener noreferrer" class="footer-icon-link footer-icon-instagram" title="Instagram do Pr. Elivando Mesquita">${svgIcon('instagram')}</a>`;
+      if (pastorYtUrl) iconsHtmlPastor += `<a href="${pastorYtUrl}" target="_blank" rel="noopener noreferrer" class="footer-icon-link footer-icon-youtube" title="YouTube do Pr. Elivando Mesquita">${svgIcon('youtube')}</a>`;
+
+      let entityIgrejaHtml = '';
+      if ((rodape.igreja || '') || iconsHtmlIgreja || (rodape.endereco || '')) {
+        let infoHtml = '';
+        if (rodape.igreja || rodape.endereco) {
+          infoHtml = `<div class="boletim-footer-entity boletim-footer-entity-info">${rodape.igreja ? `<span class="boletim-footer-entity-name">${escapeHtml(rodape.igreja)}</span>` : ''}${rodape.endereco ? `<span class="boletim-footer-entity-address">${escapeHtml(rodape.endereco)}</span>` : ''}</div>`;
+        }
+        let socialsHtml = '';
+        if (iconsHtmlIgreja) socialsHtml = `<div class="boletim-footer-entity"><span class="boletim-footer-entity-name">${escapeHtml(rodape.igreja || 'Igreja')}</span><div class="boletim-footer-icons">${iconsHtmlIgreja}</div></div>`;
+        entityIgrejaHtml = infoHtml + socialsHtml;
+      }
+
+      let entityPastorHtml = '';
+      if (iconsHtmlPastor) entityPastorHtml = `<div class="boletim-footer-entity"><span class="boletim-footer-entity-name">Pr. Elivando Mesquita</span><div class="boletim-footer-icons">${iconsHtmlPastor}</div></div>`;
+
+      let footerHtml = '';
+      if (entityIgrejaHtml || entityPastorHtml) footerHtml = `<footer class="boletim-footer">${entityIgrejaHtml}${entityPastorHtml}</footer>`;
+
+      const html = `<!DOCTYPE html>
+      <html lang="pt-BR">
+      <head>
+        <meta charset="UTF-8">
+        <title>${escapeHtml(dados.titulo || '')}</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>${estilos}</style>
+      </head>
+      <body>
+        <div class="wrapper">
+          <article class="boletim">
+            <header class="boletim-header">
+              <div class="boletim-header-inner">
+                <img class="boletim-logo" src="http://anutricaodaigreja.com/IBRR_V_New_BRANCA.png" alt="Logo da Primeira Igreja Batista Reformada em Russas">
+                <div class="boletim-header-text">
+                  <div class="boletim-main-title">Boletim Pastoral</div>
+                  ${tituloHtml}
+                  ${igrejaHtml}
+                  <div class="boletim-meta">${autorSpanHtml}${dataSpanHtml}</div>
+                </div>
+              </div>
+            </header>
+            <div class="boletim-content">
+              ${imagemHtml}
+              ${blocosHtml}
+            </div>
+            ${footerHtml}
+          </article>
+        </div>
+      </body>
+      </html>`;
+      return html;
+    }
+
+    function abrirBoletimEmNovaPagina(html) {
+      try {
+        const novaJanela = window.open('', '_blank');
+        if (!novaJanela) return null;
+        novaJanela.document.open();
+        novaJanela.document.write(html);
+        novaJanela.document.close();
+        return novaJanela;
+      } catch (e) {
+        console.warn('abrirBoletimEmNovaPagina falhou', e);
+        return null;
+      }
+    }
+
+    function gerarNomeArquivoBoletim(dados, dataOriginal) {
+      const base = (dados.titulo || 'boletim-pastoral').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+      const dataParte = dataOriginal ? String(dataOriginal).replace(/[^0-9]/g, '') : '';
+      const sufixoData = dataParte ? '-' + dataParte : '';
+      return (base || 'boletim-pastoral') + sufixoData + '.html';
+    }
+
+    // Atualiza a pré-visualização em tempo real
+    function atualizarPreview() {
+      const titulo = tituloInput.value.trim() || 'Boletim Pastoral';
+      const autor = autorInput.value.trim() || 'Autor não informado';
+      const igreja = igrejaInput.value.trim() || 'Igreja';
+      const dataValor = dataInput.value;
+      let dataFormatada = '';
+      if (dataValor) {
+        const dataObj = parseDateInputToLocal(dataValor);
+        if (dataObj && !isNaN(dataObj.getTime())) dataFormatada = dataObj.toLocaleDateString('pt-BR');
+        else dataFormatada = dataValor;
+      }
+      const blocos = coletarBlocos();
+      if (!blocos.length && !tituloInput.value && !autorInput.value && !igrejaInput.value) {
+        previewContainer.innerHTML = '<p class="placeholder-text">Comece a preencher o formulário à esquerda para visualizar o boletim aqui.</p>';
+        return;
+      }
+
+      const dadosBoletim = {
+        titulo: titulo,
+        autor: autor,
+        igreja: igreja,
+        data: dataFormatada,
+        blocos: blocos,
+        rodape: {
+          igreja: rodapeIgrejaInput.value.trim(),
+          endereco: rodapeEnderecoInput.value.trim(),
+          site: rodapeSiteInput.value.trim(),
+          facebook: rodapeFacebookInput.value.trim(),
+          instagram: rodapeInstagramInput.value.trim(),
+          youtube: rodapeYoutubeInput.value.trim()
+        },
+        rodapePastor: {
+          site: pastorSiteInput.value.trim(),
+          facebook: pastorFacebookInput.value.trim(),
+          instagram: pastorInstagramInput.value.trim(),
+          youtube: pastorYoutubeInput.value.trim()
+        },
+        tituloColor: tituloColor.value,
+        tituloFont: tituloFont.value,
+        autorColor: autorColor.value,
+        autorFont: autorFont.value,
+        igrejaColor: igrejaColor.value,
+        igrejaFont: igrejaFont.value,
+        dataColor: dataColor.value,
+        dataFont: dataFont.value
+      };
+
+      montarBoletimNoContainer(previewContainer, dadosBoletim, imagemAtualSrc);
+    }
+
+    // event listeners para inputs que afetam preview
+    tituloInput.addEventListener('input', atualizarPreview);
+    tituloColor.addEventListener('input', atualizarPreview);
+    tituloFont.addEventListener('change', atualizarPreview);
+
+    autorInput.addEventListener('input', atualizarPreview);
+    autorColor.addEventListener('input', atualizarPreview);
+    autorFont.addEventListener('change', atualizarPreview);
+
+    igrejaInput.addEventListener('input', atualizarPreview);
+    igrejaColor.addEventListener('input', atualizarPreview);
+    igrejaFont.addEventListener('change', atualizarPreview);
+
+    dataInput.addEventListener('input', atualizarPreview);
+    dataColor.addEventListener('input', atualizarPreview);
+    dataFont.addEventListener('change', atualizarPreview);
+
+    rodapeIgrejaInput.addEventListener('input', atualizarPreview);
+    rodapeEnderecoInput.addEventListener('input', atualizarPreview);
+    rodapeSiteInput.addEventListener('input', atualizarPreview);
+    rodapeFacebookInput.addEventListener('input', atualizarPreview);
+    rodapeInstagramInput.addEventListener('input', atualizarPreview);
+    rodapeYoutubeInput.addEventListener('input', atualizarPreview);
+
+    pastorSiteInput.addEventListener('input', atualizarPreview);
+    pastorFacebookInput.addEventListener('input', atualizarPreview);
+    pastorInstagramInput.addEventListener('input', atualizarPreview);
+    pastorYoutubeInput.addEventListener('input', atualizarPreview);
+
+    imagemInput.addEventListener('change', function () {
+      const arquivo = imagemInput.files[0];
+      if (!arquivo) { imagemAtualSrc = null; atualizarPreview(); return; }
+      const reader = new FileReader();
+      reader.onload = function (e) { imagemAtualSrc = e.target.result; atualizarPreview(); };
+      reader.readAsDataURL(arquivo);
+    });
+
+    // Submit para gerar versão final em nova aba, com fallbacks para bloqueadores de pop-up e perda de rede
+    formBoletim.addEventListener('submit', function (event) {
+      event.preventDefault();
+      const titulo = tituloInput.value.trim();
+      const autor = autorInput.value.trim();
+      const igreja = igrejaInput.value.trim();
+      const dataValor = dataInput.value;
+      const blocos = coletarBlocos();
+      let dataFormatada = '';
+      if (dataValor) {
+        const dataObj = parseDateInputToLocal(dataValor);
+        if (dataObj && !isNaN(dataObj.getTime())) dataFormatada = dataObj.toLocaleDateString('pt-BR');
+        else dataFormatada = dataValor;
+      }
+
+      const dadosBoletim = {
+        titulo: titulo || 'Boletim Pastoral',
+        autor: autor || 'Autor não informado',
+        igreja: igreja || 'Igreja',
+        data: dataFormatada,
+        blocos: blocos,
+        rodape: {
+          igreja: rodapeIgrejaInput.value.trim(),
+          endereco: rodapeEnderecoInput.value.trim(),
+          site: rodapeSiteInput.value.trim(),
+          facebook: rodapeFacebookInput.value.trim(),
+          instagram: rodapeInstagramInput.value.trim(),
+          youtube: rodapeYoutubeInput.value.trim()
+        },
+        rodapePastor: {
+          site: pastorSiteInput.value.trim(),
+          facebook: pastorFacebookInput.value.trim(),
+          instagram: pastorInstagramInput.value.trim(),
+          youtube: pastorYoutubeInput.value.trim()
+        },
+        tituloColor: tituloColor.value,
+        tituloFont: tituloFont.value,
+        autorColor: autorColor.value,
+        autorFont: autorFont.value,
+        igrejaColor: igrejaColor.value,
+        igrejaFont: igrejaFont.value,
+        dataColor: dataColor.value,
+        dataFont: dataFont.value
+      };
+
+      const headerStart = headerColorStartInput.value || '#1e3a8a';
+      const headerEnd = headerColorEndInput.value || '#020617';
+      const headerAngle = Number(headerAngleSelect.value) || 135;
+      const headerGradientForExport = `linear-gradient(${headerAngle}deg, ${headerStart}, ${headerEnd})`;
+
+      const htmlStandalone = gerarHTMLBoletimPaginaCompleta(dadosBoletim, imagemAtualSrc, headerGradientForExport);
+      ultimoHtmlBoletim = htmlStandalone;
+      ultimoNomeArquivoBoletim = gerarNomeArquivoBoletim(dadosBoletim, dataValor);
+      downloadHtmlBtn.disabled = false;
+
+      // salvar localmente no localStorage para resistência a perda de rede ou recarregamento
+      try {
+        localStorage.setItem(LAST_HTML_KEY, ultimoHtmlBoletim);
+        localStorage.setItem(LAST_HTML_NAME_KEY, ultimoNomeArquivoBoletim);
+      } catch (e) {
+        console.warn('Não foi possível salvar o HTML no localStorage', e);
+      }
+
+      const win = abrirBoletimEmNovaPagina(htmlStandalone);
+      if (!win) {
+        // fallback: gerar download automatico se nova aba for bloqueada
+        try {
+          const blob = new Blob([htmlStandalone], { type: 'text/html;charset=utf-8' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = ultimoNomeArquivoBoletim || 'boletim.html';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+          alert('Boletim gerado e baixado automaticamente, pois o navegador impediu abertura de nova aba. Verifique a pasta de downloads.');
+        } catch (e) {
+          alert('Boletim gerado, mas não foi possível abrir nova aba ou iniciar download automaticamente. Verifique bloqueadores de pop-up e permissões do navegador.');
+        }
+      } else {
+        try { win.focus(); } catch (e) {}
+      }
+    });
+
+    // Add block, download and print handlers
+    addBlockBtn.addEventListener('click', function () { adicionarBloco('texto'); });
+
+    downloadHtmlBtn.addEventListener('click', function () {
+      if (!ultimoHtmlBoletim) {
+        // tentar recuperar do storage
+        try {
+          const saved = localStorage.getItem(LAST_HTML_KEY);
+          const savedName = localStorage.getItem(LAST_HTML_NAME_KEY) || 'boletim.html';
+          if (saved) {
+            const blob = new Blob([saved], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = savedName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            return;
+          }
+        } catch (e) {}
+        return;
+      }
+      const blob = new Blob([ultimoHtmlBoletim], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = ultimoNomeArquivoBoletim || 'boletim.html';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    });
+
+    imprimirBtn.addEventListener('click', function () {
+      // tentar usar último HTML salvo, inclusive do storage, para robustez
+      let htmlToPrint = ultimoHtmlBoletim;
+      if (!htmlToPrint) {
+        try { htmlToPrint = localStorage.getItem(LAST_HTML_KEY) || null; } catch (e) { htmlToPrint = null; }
+      }
+      if (!htmlToPrint) { alert('Ainda não há boletim gerado para imprimir. Clique em "Gerar Boletim" primeiro.'); return; }
+      const win = abrirBoletimEmNovaPagina(htmlToPrint);
+      if (!win) { alert('Não foi possível abrir a nova aba para impressão. Verifique as configurações do navegador.'); return; }
+      win.focus();
+      win.addEventListener('load', function () {
+        try { win.print(); } catch (e) { setTimeout(function () { try { win.print(); } catch (err) {} }, 350); }
+      }, { once: true });
+      setTimeout(function () { try { win.print(); } catch (e) {} }, 800);
+    });
+
+    // tentar restaurar último HTML do localStorage ao carregar a página
+    (function tentarRestaurarUltimoHtml() {
+      try {
+        const saved = localStorage.getItem(LAST_HTML_KEY);
+        const savedName = localStorage.getItem(LAST_HTML_NAME_KEY);
+        if (saved) {
+          ultimoHtmlBoletim = saved;
+          if (savedName) ultimoNomeArquivoBoletim = savedName;
+          downloadHtmlBtn.disabled = false;
+        }
+      } catch (e) {}
+    })();
+
+    // Blocos iniciais e preview inicial
+    adicionarBloco('texto');
+    adicionarBloco('citacao');
+    atualizarPreview();
+
+  </script>
+</body>
+</html>
