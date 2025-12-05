@@ -414,7 +414,11 @@
 
             <div class="full-width">
               <label for="imagem">Imagem do Boletim</label>
-              <input type="file" id="imagem" accept="image/*">
+              <div style="display:flex; gap:0.6rem; align-items:center;">
+                <input type="file" id="imagem" accept="image/*">
+                <button type="button" id="removeImagemBtn" class="btn btn-secondary" style="display:none;" title="Remover imagem selecionada">Remover imagem</button>
+              </div>
+              <img id="imagemPreview" alt="Pré-visualização da imagem" style="display:none; margin-top:0.6rem; max-height:84px; border-radius:8px; border:1px solid #e5e7eb; box-shadow:0 6px 12px rgba(15,23,42,0.08); object-fit:cover;">
               <div class="field-hint">A imagem ficará no alto do texto, flutuando à direita, com mais largura e mais espaço do texto ao redor.</div>
             </div>
 
@@ -557,6 +561,54 @@
     const corFundoInput = document.getElementById('corFundo');
     const restaurarFundoBtn = document.getElementById('restaurarFundoBtn');
     const imagemInput = document.getElementById('imagem');
+    const removeImagemBtn = document.getElementById('removeImagemBtn');
+    const imagemPreview = document.getElementById('imagemPreview');
+
+    // Ao selecionar uma imagem, carrega como data URL para preview e para o boletim
+    if (imagemInput) {
+      imagemInput.addEventListener('change', function () {
+        const files = imagemInput.files;
+        if (files && files[0]) {
+          const file = files[0];
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            imagemAtualSrc = e.target.result || null;
+            if (imagemPreview) {
+              imagemPreview.src = imagemAtualSrc || '';
+              imagemPreview.style.display = imagemAtualSrc ? 'block' : 'none';
+            }
+            if (removeImagemBtn) removeImagemBtn.style.display = imagemAtualSrc ? 'inline-block' : 'none';
+            atualizarPreview();
+          };
+          reader.readAsDataURL(file);
+        } else {
+          // nenhum arquivo selecionado
+          imagemAtualSrc = null;
+          if (imagemPreview) {
+            imagemPreview.src = '';
+            imagemPreview.style.display = 'none';
+          }
+          if (removeImagemBtn) removeImagemBtn.style.display = 'none';
+          atualizarPreview();
+        }
+      });
+    }
+
+    // Botão para remover a imagem selecionada
+    if (removeImagemBtn) {
+      removeImagemBtn.addEventListener('click', function () {
+        try {
+          imagemInput.value = '';
+        } catch (e) {}
+        imagemAtualSrc = null;
+        if (imagemPreview) {
+          imagemPreview.src = '';
+          imagemPreview.style.display = 'none';
+        }
+        removeImagemBtn.style.display = 'none';
+        atualizarPreview();
+      });
+    }
 
     const rodapeIgrejaInput = document.getElementById('rodapeIgreja');
     const rodapeEnderecoInput = document.getElementById('rodapeEndereco');
