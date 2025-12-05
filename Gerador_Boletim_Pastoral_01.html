@@ -237,6 +237,7 @@
 
     :root { --header-gradient-fallback: linear-gradient(135deg, var(--primary), var(--primary-dark)); }
     .boletim-header { background: var(--header-gradient), var(--header-gradient-fallback); background-blend-mode: normal; }
+    .boletim-footer { background: var(--header-gradient), var(--header-gradient-fallback); background-blend-mode: normal; }
 
     @media (max-width: 1200px) { .layout-main { grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.95fr); } }
     @media (max-width: 960px) { .layout-main { grid-template-columns: 1fr; } .preview-card { position: static; max-height: none; margin-top: 1rem; } }
@@ -592,6 +593,7 @@
     function aplicarGradientNoRoot(start, end, angle) {
       const grad = `linear-gradient(${angle}deg, ${start}, ${end})`;
       document.documentElement.style.setProperty('--header-gradient', grad);
+      document.documentElement.style.setProperty('--footer-gradient', grad);
     }
 
     function carregarCorFundoSalva() {
@@ -688,6 +690,7 @@
         localStorage.removeItem(HEADER_GRADIENT_KEY);
       } catch (e) {}
       document.documentElement.style.setProperty('--header-gradient', HEADER_DEFAULT);
+      document.documentElement.style.setProperty('--footer-gradient', HEADER_DEFAULT);
       const m = HEADER_DEFAULT.match(/linear-gradient\(\s*([0-9\.]+)deg\s*,\s*([^,]+)\s*,\s*([^\)]+)\)/i);
       if (m) {
         headerAngleSelect.value = String(parseFloat(m[1]) || 135);
