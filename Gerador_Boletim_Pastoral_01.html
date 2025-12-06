@@ -79,6 +79,7 @@
 
     .blocks-container { border-radius: 14px; border: 1px dashed #cbd5f5; padding: 0.9rem; background: #f9fafb; }
     .block-item { background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 0.8rem 0.9rem 0.9rem; margin-bottom: 0.8rem; box-shadow: 0 6px 14px rgba(15, 23, 42, 0.06); }
+    .block-header { margin-bottom: 0.6rem; }
 
     .preview-title { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.3rem; color: var(--primary-dark); }
     .preview-subtitle { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.9rem; }
@@ -962,6 +963,16 @@
 
       editor.addEventListener('input', atualizarPreview);
       editor.addEventListener('keyup', atualizarPreview);
+
+      // Interceptar cola (paste) para forçar texto puro
+      editor.addEventListener('paste', function (event) {
+        event.preventDefault();
+        const text = event.clipboardData.getData('text/plain');
+        if (text) {
+          document.execCommand('insertText', false, text);
+        }
+        atualizarPreview();
+      });
     }
 
     // Adiciona bloco de conteúdo
