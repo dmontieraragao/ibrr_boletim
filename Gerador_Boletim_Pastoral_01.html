@@ -414,6 +414,12 @@
             </div>
 
             <div class="full-width">
+              <label for="imagem">Imagem da Logo da Igreja</label>
+              <input type="file" id="imagem_logo" accept="image/*">
+              <div class="field-hint">A imagem ficará no cabeçalho, a esquerda do texto, deve ter largura máxima de 200px.</div>
+            </div>
+
+            <div class="full-width">
               <label for="imagem">Imagem do Boletim</label>
               <div style="display:flex; gap:0.6rem; align-items:center;">
                 <input type="file" id="imagem" accept="image/*">
@@ -610,6 +616,8 @@
         atualizarPreview();
       });
     }
+    const imagemInputLogo = document.getElementById('imagem_logo');
+    const id_imagem_logo = document.getElementById('boletim-header-inner');
 
     const rodapeIgrejaInput = document.getElementById('rodapeIgreja');
     const rodapeEnderecoInput = document.getElementById('rodapeEndereco');
@@ -633,6 +641,7 @@
     let ultimoHtmlBoletim = null;
     let ultimoNomeArquivoBoletim = 'boletim.html';
     let imagemAtualSrc = null;
+    let imagemAtualSrcLogo = null;
 
     // Storage keys
     const BG_STORAGE_KEY = 'boletim_bg_color';
@@ -1257,7 +1266,7 @@
     }
 
     // Monta boletim no container de pré-visualização
-    function montarBoletimNoContainer(containerEl, dados, imagemSrc) {
+    function montarBoletimNoContainer(containerEl, dados, imagemSrc, imagemSrcLogo) {
       containerEl.innerHTML = '';
       const boletim = document.createElement('article');
       boletim.className = 'boletim';
@@ -1273,10 +1282,20 @@
       const headerInner = document.createElement('div');
       headerInner.className = 'boletim-header-inner';
 
-      const logo = document.createElement('img');
-      logo.className = 'boletim-logo';
-      logo.src = 'http://anutricaodaigreja.com/IBRR_V_New_BRANCA.png';
-      logo.alt = 'Logo da Primeira Igreja Batista Reformada em Russas';
+      //const logo = document.createElement('img');
+      //logo.className = 'boletim-logo';
+      //logo.src = 'http://anutricaodaigreja.com/IBRR_V_New_BRANCA.png';
+      //logo.alt = 'Logo da Primeira Igreja Batista Reformada em Russas';
+
+
+      const logo = document.createElement('img');;
+      if (imagemSrcLogo) {
+        logo.className = 'boletim-logo';
+        logo.src = imagemSrcLogo;
+        logo.alt = 'Logo da igreja no boletim pastoral';
+        //id_imagem_logo.appendChild(logo);   //xxx
+      } 
+
 
       const headerText = document.createElement('div');
       headerText.className = 'boletim-header-text';
@@ -1703,7 +1722,7 @@
         dataFont: dataFont.value
       };
 
-      montarBoletimNoContainer(previewContainer, dadosBoletim, imagemAtualSrc);
+      montarBoletimNoContainer(previewContainer, dadosBoletim, imagemAtualSrc, imagemAtualSrcLogo);
     }
 
     // event listeners para inputs que afetam preview
@@ -1740,6 +1759,14 @@
       if (!arquivo) { imagemAtualSrc = null; atualizarPreview(); return; }
       const reader = new FileReader();
       reader.onload = function (e) { imagemAtualSrc = e.target.result; atualizarPreview(); };
+      reader.readAsDataURL(arquivo);
+    });
+
+    imagemInputLogo.addEventListener('change', function () {
+      const arquivo = imagemInputLogo.files[0];
+      if (!arquivo) { imagemAtualSrcLogo = null; atualizarPreview(); return; }
+      const reader = new FileReader();
+      reader.onload = function (e) { imagemAtualSrcLogo = e.target.result; atualizarPreview(); };
       reader.readAsDataURL(arquivo);
     });
 
