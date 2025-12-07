@@ -416,7 +416,9 @@
             <div class="full-width">
               <label for="imagem">Imagem da Logo da Igreja</label>
               <input type="file" id="imagem_logo" accept="image/*">
-              <div class="field-hint">A imagem ficará no cabeçalho, a esquerda do texto, deve ter largura máxima de 200px.</div>
+              <button type="button" id="removeImagemBtnLogo" class="btn btn-secondary" style="display:none;" title="Remover imagem selecionada">Remover imagem</button>
+              <img id="imagemPreviewLogo" alt="Pré-visualização da logomarca" style="display:none; margin-top:0.6rem; max-height:84px; border-radius:8px; border:1px solid #e5e7eb; box-shadow:0 6px 12px rgba(15,23,42,0.08); object-fit:cover;">
+              <div class="field-hint">A imagem ficará no cabeçalho, a esquerda do texto, deve ter cuidado com o tamanho da imagem.</div>
             </div>
 
             <div class="full-width">
@@ -568,8 +570,11 @@
     const corFundoInput = document.getElementById('corFundo');
     const restaurarFundoBtn = document.getElementById('restaurarFundoBtn');
     const imagemInput = document.getElementById('imagem');
+    const imagemInputLogo = document.getElementById('imagem_logo');
     const removeImagemBtn = document.getElementById('removeImagemBtn');
+    const removeImagemBtnLogo = document.getElementById('removeImagemBtnLogo');
     const imagemPreview = document.getElementById('imagemPreview');
+    const imagemPreviewLogo = document.getElementById('imagemPreviewLogo');
 
     // Ao selecionar uma imagem, carrega como data URL para preview e para o boletim
     if (imagemInput) {
@@ -616,8 +621,54 @@
         atualizarPreview();
       });
     }
-    const imagemInputLogo = document.getElementById('imagem_logo');
-    const id_imagem_logo = document.getElementById('boletim-header-inner');
+    //const imagemInputLogo = document.getElementById('imagem_logo');
+    //const id_imagem_logo = document.getElementById('boletim-header-inner');
+
+    // Ao selecionar uma logomarca, carrega como data URL para preview e para o boletim
+    if (imagemInputLogo) {
+      imagemInputLogo.addEventListener('change', function () {
+        const files = imagemInputLogo.files;
+        if (files && files[0]) {
+          const file = files[0];
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            imagemAtualSrcLogo = e.target.result || null;
+            if (imagemPreviewLogo) {
+              imagemPreviewLogo.src = imagemAtualSrcLogo || '';
+              imagemPreviewLogo.style.display = imagemAtualSrcLogo ? 'block' : 'none';
+            }
+            if (removeImagemBtnLogo) removeImagemBtnLogo.style.display = imagemAtualSrcLogo ? 'inline-block' : 'none';
+            atualizarPreview();
+          };
+          reader.readAsDataURL(file);
+        } else {
+          // nenhum arquivo selecionado
+          imagemAtualSrcLogo = null;
+          if (imagemPreviewLogo) {
+            imagemPreviewLogo.src = '';
+            imagemPreviewLogo.style.display = 'none';
+          }
+          if (removeImagemBtnLogo) removeImagemBtnLogo.style.display = 'none';
+          atualizarPreview();
+        }
+      });
+    }
+
+    // Botão para remover a imagem selecionada
+    if (removeImagemBtnLogo) {
+      removeImagemBtnLogo.addEventListener('click', function () {
+        try {
+          imagemInputLogo.value = '';
+        } catch (e) {}
+        imagemAtualSrcLogo = null;
+        if (imagemPreviewLogo) {
+          imagemPreviewLogo.src = '';
+          imagemPreviewLogo.style.display = 'none';
+        }
+        removeImagemBtnLogo.style.display = 'none';
+        atualizarPreview();
+      });
+    }
 
     const rodapeIgrejaInput = document.getElementById('rodapeIgreja');
     const rodapeEnderecoInput = document.getElementById('rodapeEndereco');
@@ -1293,7 +1344,6 @@
         logo.className = 'boletim-logo';
         logo.src = imagemSrcLogo;
         logo.alt = 'Logo da igreja no boletim pastoral';
-        //id_imagem_logo.appendChild(logo);   //xxx
       } 
 
 
