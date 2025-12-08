@@ -261,183 +261,123 @@
             checkSavedSchedule();
         });
 
-        /* --- LÓGICA DE GERAÇÃO (CORE) --- */
+        /* --- LÓGICA DE GERAÇÃO (PORTADA DO ANTIGO) --- */
+        // Helpers do arquivo antigo
+        function preparePool(arr) { arr.sort(() => Math.random() - 0.5); return arr.sort((a,b) => a.roles.length - b.roles.length); }
+        function pick(pool,idx,busy,avoid) {
+            for(let i=0;i<pool.length;i++) { const x=pool[(idx+i)%pool.length]; if(!busy.has(x.id)&&!avoid.includes(x.id)) return {c:x,n:idx+i+1}; }
+            for(let i=0;i<pool.length;i++) { const x=pool[(idx+i)%pool.length]; if(!busy.has(x.id)) return {c:x,n:idx+i+1}; }
+            return null;
+        }
+        function pickAllowBusy(pool,idx,reallyBusy,avoid) {
+             for(let i=0;i<pool.length;i++) { const x=pool[(idx+i)%pool.length]; if(!reallyBusy.has(x.id) && !avoid.includes(x.id)) return {c:x,n:idx+i+1}; }
+             for(let i=0;i<pool.length;i++) { const x=pool[(idx+i)%pool.length]; if(!reallyBusy.has(x.id)) return {c:x,n:idx+i+1}; }
+             return null;
+        }
+
         function gerarNovaEscala() {
             if(currentScheduleData && !confirm("Já existe uma escala salva. Deseja sobrescrever?")) return;
             const month=parseInt(document.getElementById('selMonth').value), year=parseInt(document.getElementById('selYear').value);
-            const absentDates=new Set(); document.querySelectorAll('#pastorAbsenceContainer input:checked').forEach(c=>absentDates.add(c.value));
-            
+            const absentDates=[]; document.querySelectorAll('#pastorAbsenceContainer input:checked').forEach(c=>absentDates.push(c.value));
             const dates=[]; const d=new Date(year,month,1);
             while(d.getMonth()===month) { if(d.getDay()===0||d.getDay()===3) dates.push({iso:d.toISOString().split('T')[0], isDom:d.getDay()===0, day:d.getDate()}); d.setDate(d.getDate()+1); }
 
-            const faxGrps=[...new Set(members.map(m=>m.cleaningGroup).filter(g=>g))].sort();
-            let faxIdx = 0;
-
-            const usageTracker = {}; members.forEach(m => usageTracker[m.id] = 0);
+            // Lógica de Pools (Grupos)
+            const pas=members.find(m=>m.roles.includes('pastor'));
+            const pres=preparePool(members.filter(m=>m.roles.includes('presbitero')));
+            const quaLider=preparePool([...pres,...members.filter(m=>m.roles.includes('experimentado'))]);
             
-            const selectCandidates = (pool, count, busySet, avoidIds = [], forceIds = []) => {
-                let candidates = pool.filter(m => !busySet.has(m.id) && !forceIds.includes(m.id));
-                candidates.sort((a,b) => usageTracker[a.id] - usageTracker[b.id]);
-                let preferred = candidates.filter(m => !avoidIds.includes(m.id));
-                let result = [];
-                while(result.length < count) {
-                    if (preferred.length > 0) {
-                        const picked = preferred.shift();
-                        result.push(picked);
-                        busySet.add(picked.id);
-                        usageTracker[picked.id]++;
-                    } else if (candidates.length > 0) {
-                        const remaining = candidates.filter(m => !result.includes(m) && !busySet.has(m.id));
-                        if(remaining.length > 0) {
-                            remaining.sort((a,b) => usageTracker[a.id] - usageTracker[b.id]);
-                            const picked = remaining.shift();
-                            result.push(picked);
-                            busySet.add(picked.id);
-                            usageTracker[picked.id]++;
-                        } else break;
-                    } else break;
-                }
-                return result.map(m => m.id);
-            };
+            const vH=preparePool(members.filter(m=>m.roles.includes('vocal')&&m.gender==='M')), vM=preparePool(members.filter(m=>m.roles.includes('vocal')&&m.gender==='F'));
+            const pia=preparePool(members.filter(m=>m.roles.includes('piano'))), vio=preparePool(members.filter(m=>m.roles.includes('violao'))), gen=preparePool(members.filter(m=>m.roles.includes('piano')||m.roles.includes('violao')));
+            const som=preparePool(members.filter(m=>m.roles.includes('sonoplastia'))), mid=preparePool(members.filter(m=>m.roles.includes('midia')));
+            
+            // Lógica de Recepção (Pares)
+            const recPool=members.filter(m=>m.roles.includes('recepcao')); let recPairs=[], proc=new Set();
+            recPool.forEach(m=>{if(proc.has(m.id))return; if(m.spouseId){const s=recPool.find(x=>x.id===m.spouseId);if(s){recPairs.push([m,s]);proc.add(m.id);proc.add(s.id);}}});
+            let sm=preparePool(recPool.filter(m=>m.gender==='M'&&!proc.has(m.id))), sf=preparePool(recPool.filter(m=>m.gender==='F'&&!proc.has(m.id)));
+            while(sm.length&&sf.length)recPairs.push([sm.pop(),sf.pop()]);
+            recPairs.sort((a,b) => (a[0].roles.length+a[1].roles.length) - (b[0].roles.length+b[1].roles.length));
+
+            const faxGrps=[...new Set(members.map(m=>m.cleaningGroup).filter(g=>g))].sort();
+            let iP=0,iQ=0,iVH=0,iVM=0,iPi=0,iVi=0,iGe=0,iS=0,iMi=0,iRec=0,iFx=0;
 
             const rows = dates.map(dt => {
                 const r = { day:dt.day, isDom:dt.isDom, iso:dt.iso, direcao:null, pregacao:null, instrumentos:[], vocais:[], som:null, midia:null, recepcaoManha:[], recepcaoNoite:[], faxinaGrp:null };
-                const busy = new Set(); 
-
-                // 1. FAXINA
-                let faxinaAvoidIds = [];
-                if(dt.isDom && faxGrps.length) {
-                    r.faxinaGrp = faxGrps[faxIdx++ % faxGrps.length];
-                    faxinaAvoidIds = members.filter(m => m.cleaningGroup === r.faxinaGrp).map(m => m.id);
+                let busy=new Set(), faxIds=[]; 
+                
+                // CORREÇÃO: Se Pastor ausente, marca como ocupado imediatamente
+                if(pas && absentDates.includes(dt.iso)) {
+                    busy.add(pas.id);
                 }
 
-                // 2. PREGAÇÃO
-                let pregador = null;
-                const pastor = members.find(m => m.roles.includes('pastor'));
-                
-                if (dt.isDom) {
-                    if (pastor && !absentDates.has(dt.iso)) {
-                        pregador = pastor;
+                if(dt.isDom && faxGrps.length) { r.faxinaGrp=faxGrps[iFx++%faxGrps.length]; faxIds=members.filter(m=>m.cleaningGroup===r.faxinaGrp).map(m=>m.id); }
+
+                // Pregação
+                let prg=null;
+                if(dt.isDom) {
+                    // Verifica se Pastor está ausente (já está em 'busy', mas checamos a lista explícita para lógica de substituição)
+                    if(absentDates.includes(dt.iso)) {
+                         prg = pres[iP++%pres.length];
                     } else {
-                        const subs = members.filter(m => (m.roles.includes('presbitero') || m.roles.includes('experimentado')) && m.id !== (pastor?pastor.id:-1));
-                        if(subs.length) {
-                             subs.sort((a,b) => usageTracker[a.id] - usageTracker[b.id]);
-                             pregador = subs[0];
+                         prg = pas;
+                    }
+                }
+                else if(quaLider.length) prg = quaLider[iQ++%quaLider.length];
+                
+                r.pregacao=prg?prg.id:null; if(prg) busy.add(prg.id);
+
+                // Instrumentos
+                if(dt.isDom) {
+                    let p=pick(pia,iPi,busy,faxIds); if(p){r.instrumentos.push(p.c.id); busy.add(p.c.id); iPi=p.n;}
+                    let v=pick(vio,iVi,busy,faxIds); if(v){r.instrumentos.push(v.c.id); busy.add(v.c.id); iVi=v.n;}
+                    let cnt = (p?1:0)+(v?1:0); let att=0;
+                    while(cnt < 2 && att<10) { let g=pick(gen,iGe,busy,faxIds); if(g){r.instrumentos.push(g.c.id); busy.add(g.c.id); iGe=g.n; cnt++;} else break; att++; }
+                } else {
+                    let g=pick(gen,iGe,busy,faxIds); if(g){r.instrumentos.push(g.c.id); busy.add(g.c.id); iGe=g.n;}
+                }
+
+                // Direção
+                let dirCands = preparePool(members.filter(m=>['pastor','presbitero','experimentado'].some(x=>m.roles.includes(x)) && !busy.has(m.id)));
+                let dir = dirCands.length ? dirCands[0] : prg;
+                r.direcao = dir?dir.id:null; if(dir) busy.add(dir.id);
+
+                let reallyBusy = new Set([r.pregacao, r.direcao]); 
+                // Técnica
+                if(som.length) { const x=pick(som,iS,busy,faxIds); if(x){r.som=x.c.id; busy.add(x.c.id); reallyBusy.add(x.c.id); iS=x.n;} }
+                if(mid.length) { const x=pick(mid,iMi,busy,faxIds); if(x){r.midia=x.c.id; busy.add(x.c.id); reallyBusy.add(x.c.id); iMi=x.n;} }
+
+                // Vocal
+                let qH=dt.isDom?1:0, qM=dt.isDom?2:2;
+                while(qH>0) { const x=pickAllowBusy(vH,iVH,reallyBusy,faxIds); if(x){r.vocais.push(x.c.id); if(!r.instrumentos.includes(x.c.id)) busy.add(x.c.id); iVH=x.n; qH--;} else break; }
+                while(qM>0) { const x=pickAllowBusy(vM,iVM,reallyBusy,faxIds); if(x){r.vocais.push(x.c.id); if(!r.instrumentos.includes(x.c.id)) busy.add(x.c.id); iVM=x.n; qM--;} else break; }
+
+                // Recepção (Lógica de Pares do Antigo adaptada para saída do Novo)
+                if(dt.isDom) {
+                    if(recPairs.length) {
+                        let p1=null;
+                        for(let k=0;k<recPairs.length;k++) {
+                            const p=recPairs[(iRec+k)%recPairs.length];
+                            if(!busy.has(p[0].id) && !busy.has(p[1].id) && !faxIds.includes(p[0].id) && !faxIds.includes(p[1].id)) { p1=p; iRec+=k+1; break; }
                         }
+                        if(!p1) p1=recPairs[iRec++%recPairs.length];
+                        r.recepcaoManha=[p1[0].id, p1[1].id]; // Array IDs para o render
+                        let p2=null;
+                        for(let k=0;k<recPairs.length;k++) {
+                            const p=recPairs[(iRec+k)%recPairs.length];
+                            if(p[0].id !== p1[0].id && !busy.has(p[0].id) && !busy.has(p[1].id) && !faxIds.includes(p[0].id) && !faxIds.includes(p[1].id)) { p2=p; iRec+=k+1; break; }
+                        }
+                        if(!p2) { for(let k=0;k<recPairs.length;k++) { const p=recPairs[(iRec+k)%recPairs.length]; if(p[0].id !== p1[0].id) { p2=p; iRec+=k+1; break; } } }
+                        if(p2) r.recepcaoNoite=[p2[0].id, p2[1].id];
                     }
                 } else {
-                    const liders = members.filter(m => (m.roles.includes('presbitero') || m.roles.includes('experimentado') || m.roles.includes('pastor')));
-                    if(liders.length) {
-                        liders.sort((a,b) => usageTracker[a.id] - usageTracker[b.id]);
-                        pregador = liders[0];
-                    }
-                }
-                if(pregador) { r.pregacao = pregador.id; busy.add(pregador.id); usageTracker[pregador.id]++; }
-
-                // 3. MÚSICA & TÉCNICA
-                const somCands = members.filter(m => m.roles.includes('sonoplastia'));
-                const midiaCands = members.filter(m => m.roles.includes('midia'));
-                r.som = selectCandidates(somCands, 1, busy, faxinaAvoidIds)[0] || null;
-                r.midia = selectCandidates(midiaCands, 1, busy, faxinaAvoidIds)[0] || null;
-
-                const pianos = members.filter(m => m.roles.includes('piano'));
-                const violoes = members.filter(m => m.roles.includes('violao'));
-                
-                if (dt.isDom) {
-                    let p1 = selectCandidates(pianos, 1, busy, faxinaAvoidIds)[0];
-                    if(p1) r.instrumentos.push(p1);
-                    let v1 = selectCandidates(violoes, 1, busy, faxinaAvoidIds)[0];
-                    if(v1) r.instrumentos.push(v1);
-                    if(r.instrumentos.length < 2) {
-                         const others = members.filter(m => (m.roles.includes('piano') || m.roles.includes('violao')) && !busy.has(m.id));
-                         const needed = 2 - r.instrumentos.length;
-                         const picked = selectCandidates(others, needed, busy, faxinaAvoidIds);
-                         r.instrumentos.push(...picked);
-                    }
-                } else {
-                    const insts = members.filter(m => (m.roles.includes('piano') || m.roles.includes('violao')));
-                    r.instrumentos = selectCandidates(insts, 1, busy, faxinaAvoidIds);
-                }
-
-                // Vozes
-                const requiredVoices = dt.isDom ? 3 : 2;
-                const vocals = members.filter(m => m.roles.includes('vocal'));
-                
-                if (dt.isDom) {
-                    const maleVocals = vocals.filter(m => m.gender === 'M' && !busy.has(m.id) && !faxinaAvoidIds.includes(m.id));
-                    let pickedMale = [];
-                    if (maleVocals.length > 0) {
-                         pickedMale = selectCandidates(vocals.filter(m => m.gender === 'M'), 1, busy, faxinaAvoidIds);
-                         r.vocais.push(...pickedMale);
-                    }
-                    const needed = requiredVoices - r.vocais.length;
-                    if (needed > 0) {
-                        const pickedRest = selectCandidates(vocals, needed, busy, faxinaAvoidIds);
-                        r.vocais.push(...pickedRest);
-                    }
-                } else {
-                    r.vocais = selectCandidates(vocals, requiredVoices, busy, faxinaAvoidIds);
-                }
-
-                // 4. DIREÇÃO
-                const dirCands = members.filter(m => (m.roles.includes('pastor') || m.roles.includes('presbitero') || m.roles.includes('experimentado')) && !busy.has(m.id));
-                if (dirCands.length > 0) {
-                    dirCands.sort((a,b) => usageTracker[a.id] - usageTracker[b.id]);
-                    const diretor = dirCands[0];
-                    r.direcao = diretor.id;
-                    busy.add(diretor.id);
-                    usageTracker[diretor.id]++;
-                } else {
-                    if (r.pregacao) { r.direcao = r.pregacao; }
-                }
-
-                if (dt.isDom && r.instrumentos.length < 2) {
-                    const isPastorAbsent = absentDates.has(dt.iso);
-                    const isDoubleBooked = r.direcao === r.pregacao;
-                    if (!isPastorAbsent || !isDoubleBooked) {
-                         const desperate = members.filter(m => (m.roles.includes('piano') || m.roles.includes('violao')) && !busy.has(m.id));
-                         const picked = selectCandidates(desperate, 1, busy, []); 
-                         if(picked.length) r.instrumentos.push(...picked);
-                    }
-                }
-
-                // 5. RECEPÇÃO
-                const recPool = members.filter(m => m.roles.includes('recepcao') && !busy.has(m.id) && !faxinaAvoidIds.includes(m.id));
-                const getPair = (pool, excludeIds = []) => {
-                    let available = pool.filter(m => !excludeIds.includes(m.id));
-                    available.sort((a,b) => usageTracker[a.id] - usageTracker[b.id]);
-                    if (available.length === 0) return [];
-                    const p1 = available[0];
-                    let p2 = null;
-                    if (p1.spouseId) p2 = available.find(m => m.id === p1.spouseId);
-                    if (!p2) {
-                        const targetGender = p1.gender === 'M' ? 'F' : 'M';
-                        p2 = available.find(m => m.gender === targetGender && m.id !== p1.id && (!m.spouseId || !available.find(x=>x.id===m.spouseId))); 
-                        if (!p2) p2 = available.find(m => m.gender === targetGender && m.id !== p1.id);
-                    }
-                    if (!p2) p2 = available.find(m => m.id !== p1.id);
-                    if (p1 && p2) return [p1, p2];
-                    if (p1) return [p1]; 
-                    return [];
-                };
-
-                if (dt.isDom) {
-                    const pairManha = getPair(recPool);
-                    if (pairManha.length) {
-                        r.recepcaoManha = pairManha.map(m => m.id);
-                        pairManha.forEach(m => usageTracker[m.id]++);
-                    }
-                    const workedMorning = r.recepcaoManha;
-                    const pairNoite = getPair(recPool, workedMorning);
-                    if (pairNoite.length) {
-                        r.recepcaoNoite = pairNoite.map(m => m.id);
-                        pairNoite.forEach(m => { busy.add(m.id); usageTracker[m.id]++; });
-                    }
-                } else {
-                    const pairNoite = getPair(recPool);
-                    if (pairNoite.length) {
-                        r.recepcaoNoite = pairNoite.map(m => m.id);
-                        pairNoite.forEach(m => { busy.add(m.id); usageTracker[m.id]++; });
+                    if(recPairs.length) { 
+                        let p=null;
+                        for(let k=0;k<recPairs.length;k++) {
+                            const cand=recPairs[(iRec+k)%recPairs.length];
+                            if(!busy.has(cand[0].id) && !busy.has(cand[1].id)) { p=cand; iRec+=k+1; break; }
+                        }
+                        if(!p) p=recPairs[iRec++%recPairs.length];
+                        r.recepcaoNoite=[p[0].id, p[1].id]; 
                     }
                 }
                 return r;
