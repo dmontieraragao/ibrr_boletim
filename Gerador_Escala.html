@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciador de Escalas IBRR</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <style id="page-orientation-style">
+        @media print { 
+            @page { size: A4 portrait; margin: 8mm 6mm; }
+        }
+    </style>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;700&display=swap');
+        
+        :root { --primary: #1e293b; --accent: #b45309; }
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; color: #1f2937; }
+        .font-serif { font-family: 'Playfair Display', serif; }
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Selects na Tabela */
+        .dynamic-select {
+            appearance: none; background-color: transparent; border: none; border-bottom: 1px dashed #cbd5e1;
+            padding: 2px 0; font-family: inherit; font-weight: 500; cursor: pointer; width: 100%; font-size: 0.75rem; color: #334155; transition: all 0.2s;
+        }
+        .dynamic-select:hover { border-bottom-color: var(--accent); color: var(--accent); background-color: #fffbeb; }
+        .dynamic-select:focus { outline: none; border-bottom: 2px solid var(--primary); }
+        .conflict-detected { color: #dc2626 !important; background-color: #fee2e2; padding: 0 2px; border-radius: 2px; font-weight: 700; }
+        
+        .section-label { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; font-weight: 700; margin-bottom: 1px; display: block; border-bottom: 1px solid #f1f5f9; }
+        .filter-btn.active { background-color: #1e293b; color: white; border-color: #1e293b; }
+
+        /* --- CSS DE IMPRESSÃO --- */
+        @media print {
+            body { background: white; color: black; width: 100%; font-size: 8pt; -webkit-print-color-adjust: exact; print-color-adjust: exact; line-height: 1.2; }
+            header, aside, .no-print, #view-team, .btn-action, #print-settings, ::-webkit-scrollbar { display: none !important; }
+            main { padding: 0; margin: 0; max-width: 100% !important; display: block; overflow: visible; }
+            #view-scale { display: block !important; }
+            section { box-shadow: none; border: none; padding: 0; margin: 0; }
+            
+            #print-header-container { 
+                display: flex !important; flex-direction: row; align-items: center; justify-content: space-between;
+                margin-bottom: 6px; border-bottom: 2px solid #000; padding-bottom: 4px; width: 100%;
+            }
+            .print-logo-box { display: flex; align-items: center; gap: 10px; }
+            .print-logo { height: 45px; width: auto; object-fit: contain; }
+            
+            .church-title h1 { font-family: 'Playfair Display', serif; font-size: 14pt; font-weight: 700; text-transform: uppercase; color: #000; line-height: 1; margin: 0; }
+            .church-title p { font-size: 7pt; text-transform: uppercase; letter-spacing: 0.5px; color: #333; margin-top: 2px; }
+            .doc-info { text-align: right; min-width: 80px; }
+            .doc-info h2 { font-size: 10pt; font-weight: 700; text-transform: uppercase; margin: 0; }
+            .doc-info p { font-size: 7pt; margin-top: 0px; font-weight: 600; }
+
+            table { width: 100%; border-collapse: collapse; table-layout: fixed; margin-bottom: 0; }
+            thead { border-bottom: 2px solid #000; display: table-header-group; }
+            th { font-family: 'Inter', sans-serif; font-size: 6.5pt; font-weight: 700; text-transform: uppercase; text-align: left; padding: 2px 1px; background-color: #e5e7eb !important; border-bottom: 1px solid #000; color: #000 !important; line-height: 1; }
+            
+            /* Alinhamento vertical centralizado */
+            td { padding: 2px 1px; border-bottom: 1px solid #ddd; vertical-align: middle !important; font-size: 7pt; line-height: 1.1; }
+            
+            tr { break-inside: avoid; }
+
+            .dynamic-select { display: none !important; }
+            .print-value { display: inline !important; }
+            
+            /* Correção do traço: remove borda */
+            .section-label { color: #000 !important; border: none !important; font-size: 5.5pt; margin: 0; padding-right: 2px; }
+            
+            .faxina-cell { background: none !important; }
+            .fa-exclamation-triangle, .fas, .fab { display: none !important; }
+            
+            body:not(.landscape-mode) table.mode-general th:nth-child(1) { width: 6%; } 
+            body:not(.landscape-mode) table.mode-general th:nth-child(2) { width: 16%; }
+            body:not(.landscape-mode) table.mode-general th:nth-child(3) { width: 16%; }
+            body:not(.landscape-mode) table.mode-general th:nth-child(4) { width: 16%; }
+            body:not(.landscape-mode) table.mode-general th:nth-child(5) { width: 16%; }
+            body:not(.landscape-mode) table.mode-general th:nth-child(6) { width: 16%; }
+            body:not(.landscape-mode) table.mode-general th:nth-child(7) { width: 14%; }
+            
+            body.landscape-mode table.mode-general th:nth-child(1) { width: 5%; }
+            body.landscape-mode table.mode-general th:nth-child(2) { width: 16%; }
+            body.landscape-mode table.mode-general th:nth-child(3) { width: 16%; }
+            body.landscape-mode table.mode-general th:nth-child(4) { width: 16%; }
+            body.landscape-mode table.mode-general th:nth-child(5) { width: 16%; }
+            body.landscape-mode table.mode-general th:nth-child(6) { width: 16%; }
+            body.landscape-mode table.mode-general th:nth-child(7) { width: 15%; }
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+
+    <header class="bg-slate-900 text-white shadow-md z-20 no-print">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="bg-white p-1 rounded-full h-10 w-10 flex items-center justify-center overflow-hidden">
+                    <img src="logo.png" alt="IBRR" class="h-full w-full object-contain" onerror="this.style.display='none';this.parentElement.innerHTML='<i class=\'fas fa-church text-amber-500\'></i>'">
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold font-serif tracking-wide">Igreja Batista Reformada</h1>
+                    <p class="text-[10px] text-slate-400 uppercase tracking-widest">Em Russas</p>
+                </div>
+            </div>
+            <nav class="flex gap-2 bg-slate-800 p-1 rounded-lg">
+                <button onclick="switchTab('view-scale')" id="tab-scale" class="px-4 py-1.5 rounded text-sm font-medium bg-amber-600 text-white shadow hover:bg-amber-500 transition">Escala</button>
+                <button onclick="switchTab('view-team')" id="tab-team" class="px-4 py-1.5 rounded text-sm font-medium text-slate-300 hover:bg-slate-700 hover:text-white transition">Equipe</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="flex-1 overflow-y-auto p-4 md:p-6 max-w-[1600px] mx-auto w-full relative">
+
+        <div id="print-header-container" class="hidden">
+            <div class="print-logo-box">
+                <img id="printLogoImg" src="logo.png" alt="Logo" class="print-logo" onerror="this.style.display='none'"> 
+                <div class="church-title">
+                    <h1 id="printChurchName">Igreja Batista Reformada em Russas</h1>
+                    <p>Escala de Serviços e Liturgia</p>
+                </div>
+            </div>
+            <div class="doc-info">
+                <h2 id="printDocTitle">Escala Mensal</h2>
+                <p id="printMonthYear">JANEIRO / 2024</p>
+            </div>
+        </div>
+
+        <div id="view-team" class="hidden fade-in grid grid-cols-1 xl:grid-cols-12 gap-6">
+            <div class="xl:col-span-4 bg-white p-5 rounded-xl shadow-sm border border-slate-200 h-fit">
+                <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-100">
+                    <h2 class="text-base font-bold text-slate-800 flex items-center gap-2"><i class="fas fa-user-plus text-amber-600"></i> <span id="formTitle">Novo Membro</span></h2>
+                    <button id="btnCancel" onclick="cancelEdit()" class="hidden text-xs text-red-500 hover:underline">Cancelar</button>
+                </div>
+                <form id="memberForm" onsubmit="handleFormSubmit(event)" class="space-y-3">
+                    <input type="hidden" id="editId">
+                    <div><label class="block text-xs font-bold text-slate-500 mb-1">Nome</label><input type="text" id="inputName" required class="w-full border rounded p-2 text-sm outline-none focus:border-amber-500"></div>
+                    <div><label class="block text-xs font-bold text-slate-500 mb-1">Email</label><input type="email" id="inputEmail" class="w-full border rounded p-2 text-sm outline-none focus:border-amber-500"></div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div><label class="block text-xs font-bold text-slate-500 mb-1">Gênero</label><select id="inputGender" onchange="updateSpouseOptions()" class="w-full border rounded p-2 bg-white text-sm"><option value="M">Masculino</option><option value="F">Feminino</option></select></div>
+                        <div><label class="block text-xs font-bold text-slate-500 mb-1">Cônjuge</label><select id="inputSpouse" class="w-full border rounded p-2 bg-white text-sm"><option value="">Solteiro(a)</option></select></div>
+                    </div>
+                    <div><label class="block text-xs font-bold text-slate-500 mb-1">Faxina</label><select id="inputCleaningGroup" class="w-full border rounded p-2 bg-white text-sm"><option value="">Não participa</option><option value="A">Grupo A</option><option value="B">Grupo B</option><option value="C">Grupo C</option><option value="D">Grupo D</option></select></div>
+                    <div class="bg-slate-50 p-3 rounded border border-slate-100 space-y-2">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase">Habilidades</span>
+                        <div class="flex flex-wrap gap-2 text-xs"><label><input type="checkbox" name="roles" value="pastor"> Pr</label><label><input type="checkbox" name="roles" value="presbitero"> Pb</label><label><input type="checkbox" name="roles" value="experimentado"> Exp</label></div>
+                        <div class="border-t pt-1 flex flex-wrap gap-2 text-xs"><label><input type="checkbox" name="roles" value="piano"> Piano</label><label><input type="checkbox" name="roles" value="violao"> Violão</label><label><input type="checkbox" name="roles" value="vocal"> Vocal</label></div>
+                        <div class="border-t pt-1 flex flex-wrap gap-2 text-xs"><label><input type="checkbox" name="roles" value="recepcao"> Recepção</label><label><input type="checkbox" name="roles" value="sonoplastia"> Som</label><label><input type="checkbox" name="roles" value="midia"> Mídia</label></div>
+                    </div>
+                    <button type="submit" id="btnSubmit" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 rounded text-sm transition">Salvar</button>
+                </form>
+            </div>
+            <div class="xl:col-span-8 flex flex-col gap-4">
+                <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200 flex justify-between items-center">
+                    <div class="flex items-center gap-2"><h3 class="font-bold text-slate-700 text-sm pl-2">Banco de Dados</h3><span class="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full border border-slate-200" id="memberCount">0</span></div>
+                    <div class="flex gap-2">
+                        <button onclick="exportData()" class="bg-slate-100 text-slate-600 text-xs font-bold py-1.5 px-3 rounded hover:bg-slate-200">Backup</button>
+                        <label class="bg-slate-100 text-slate-600 text-xs font-bold py-1.5 px-3 rounded hover:bg-slate-200 cursor-pointer">Restaurar <input type="file" onchange="importData(this)" class="hidden" accept=".json"></label>
+                        <button onclick="resetDatabase()" class="text-red-500 text-xs font-bold py-1.5 px-3 rounded border border-transparent hover:border-red-100 hover:bg-red-50">Resetar</button>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 flex-1 min-h-[500px] p-4 overflow-y-auto"><div id="membersGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3"></div></div>
+            </div>
+        </div>
+
+        <div id="view-scale" class="fade-in grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <aside class="lg:col-span-3 space-y-5 no-print">
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                    <h3 class="font-bold text-slate-800 mb-4 border-b pb-2">Gerador</h3>
+                    <div class="grid grid-cols-2 gap-2 mb-4">
+                        <div><label class="text-[10px] font-bold text-slate-400 uppercase">Mês</label><select id="selMonth" class="w-full border rounded p-1.5 text-sm" onchange="handleDateChange()"><option value="0">Jan</option><option value="1">Fev</option><option value="2">Mar</option><option value="3">Abr</option><option value="4">Mai</option><option value="5">Jun</option><option value="6">Jul</option><option value="7">Ago</option><option value="8">Set</option><option value="9">Out</option><option value="10">Nov</option><option value="11">Dez</option></select></div>
+                        <div><label class="text-[10px] font-bold text-slate-400 uppercase">Ano</label><input type="number" id="selYear" class="w-full border rounded p-1.5 text-sm" value="2025" onchange="handleDateChange()"></div>
+                    </div>
+                    <div class="mb-4 bg-red-50 p-3 rounded border border-red-100">
+                        <h4 class="text-xs font-bold text-red-800 mb-2">Ausência Pastor</h4>
+                        <div id="pastorAbsenceContainer" class="space-y-1"></div>
+                    </div>
+                    <button onclick="gerarNovaEscala()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded shadow transition">Gerar Escala</button>
+                </div>
+                
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                    <h3 class="font-bold text-slate-800 mb-4 border-b pb-2">Publicação</h3>
+                    
+                    <div class="mb-4">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Orientação do Papel</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="setOrientation('portrait')" id="btn-orient-portrait" class="filter-btn active border border-slate-300 rounded p-1.5 text-xs font-medium hover:bg-slate-50 transition text-center flex items-center justify-center gap-1"><i class="fas fa-file"></i> Retrato</button>
+                            <button onclick="setOrientation('landscape')" id="btn-orient-landscape" class="filter-btn border border-slate-300 rounded p-1.5 text-xs font-medium hover:bg-slate-50 transition text-center flex items-center justify-center gap-1"><i class="fas fa-file-image"></i> Paisagem</button>
+                        </div>
+                    </div>
+
+                    <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Tipo de Relatório</label>
+                    <div class="grid grid-cols-2 gap-2 mb-4">
+                        <button onclick="setReportMode('general')" id="btn-mode-general" class="filter-btn active border border-slate-300 rounded p-1.5 text-xs font-medium hover:bg-slate-50 transition text-center">Geral</button>
+                        <button onclick="setReportMode('music')" id="btn-mode-music" class="filter-btn border border-slate-300 rounded p-1.5 text-xs font-medium hover:bg-slate-50 transition text-center">Música</button>
+                        <button onclick="setReportMode('reception')" id="btn-mode-reception" class="filter-btn border border-slate-300 rounded p-1.5 text-xs font-medium hover:bg-slate-50 transition text-center">Recepção</button>
+                        <button onclick="setReportMode('cleaning')" id="btn-mode-cleaning" class="filter-btn border border-slate-300 rounded p-1.5 text-xs font-medium hover:bg-slate-50 transition text-center">Faxina</button>
+                    </div>
+
+                    <div class="mb-4">
+                        <div><label class="text-[10px] font-bold text-slate-400 uppercase">Título</label><input type="text" id="customTitle" class="w-full border rounded p-1.5 text-sm" value="Escala Mensal"></div>
+                    </div>
+                    <button onclick="preparePrint()" class="w-full bg-slate-800 hover:bg-black text-white font-bold py-2 rounded text-sm shadow mb-2"><i class="fas fa-print mr-1"></i> Imprimir Relatório</button>
+                    <button onclick="downloadICS()" class="w-full bg-white border border-slate-300 text-slate-700 font-bold py-2 rounded text-xs hover:bg-slate-50"><i class="fas fa-calendar mr-1"></i> Baixar ICS</button>
+                </div>
+            </aside>
+
+            <section class="lg:col-span-9">
+                <div class="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden min-h-[600px] flex flex-col">
+                    <div class="p-5 bg-slate-50 border-b border-slate-200 flex justify-between items-center no-print">
+                        <h2 class="font-bold text-xl text-slate-800 font-serif" id="escalaTitle">Escala de Serviço</h2>
+                        <span class="text-xs text-slate-500 bg-white px-2 py-1 rounded border">Clique para editar</span>
+                    </div>
+                    <div class="overflow-x-auto p-0 flex-1">
+                        <table class="w-full text-left border-collapse" id="tabelaEscala">
+                            <thead id="tabelaHead"></thead>
+                            <tbody id="scheduleBody" class="text-sm divide-y divide-slate-100 bg-white"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script>
+        let members=[], editingId=null, currentScheduleData=null;
+        let currentReportMode = 'general';
+        let currentOrientation = 'portrait';
+
+        // Mock Data
+        const initialData = [
+            { id: 1, name: "Pr. João", gender: "M", email: "", roles: ["pastor"], spouseId: 2, cleaningGroup: "" },
+            { id: 2, name: "Pra. Maria", gender: "F", email: "", roles: ["recepcao", "vocal"], spouseId: 1, cleaningGroup: "A" },
+            { id: 3, name: "Pb. Marcos", gender: "M", email: "", roles: ["presbitero", "recepcao", "sonoplastia"], spouseId: 4, cleaningGroup: "B" },
+            { id: 4, name: "Ana (Marcos)", gender: "F", email: "", roles: ["recepcao", "vocal"], spouseId: 3, cleaningGroup: "B" },
+            { id: 5, name: "Lucas (Violão)", gender: "M", email: "", roles: ["experimentado", "violao", "vocal"], cleaningGroup: "A" },
+            { id: 7, name: "André (Violão)", gender: "M", email: "", roles: ["violao"], cleaningGroup: "B" },
+            { id: 11, name: "Carlos (Piano)", gender: "M", email: "", roles: ["piano", "vocal"], cleaningGroup: "C" },
+            { id: 20, name: "Pedro (Piano)", gender: "M", email: "", roles: ["piano"], cleaningGroup: "D" },
+            { id: 13, name: "Beatriz", gender: "F", email: "", roles: ["vocal"], cleaningGroup: "" },
+            { id: 14, name: "Camila", gender: "F", email: "", roles: ["vocal"], cleaningGroup: "D" },
+            { id: 21, name: "Felipe (Som)", gender: "M", email: "", roles: ["sonoplastia"], cleaningGroup: "C" },
+            { id: 22, name: "Gustavo (Mídia)", gender: "M", email: "", roles: ["midia"], cleaningGroup: "D" },
+            { id: 23, name: "Daniel", gender: "M", email: "", roles: ["sonoplastia", "violao"], cleaningGroup: "A" },
+            { id: 24, name: "Raquel", gender: "F", email: "", roles: ["midia", "recepcao"], cleaningGroup: "B" },
+            { id: 6, name: "Carla", gender: "F", email: "", roles: ["recepcao"], cleaningGroup: "A" },
+            { id: 9, name: "Roberto", gender: "M", email: "", roles: ["recepcao"], cleaningGroup: "C" },
+            { id: 10, name: "Fernanda", gender: "F", email: "", roles: ["recepcao", "vocal"], cleaningGroup: "C" },
+            { id: 12, name: "Tiago", gender: "M", email: "", roles: ["experimentado", "recepcao"], cleaningGroup: "A" },
+            { id: 30, name: "Membro Novo", gender: "M", email: "", roles: [], cleaningGroup: "" }
+        ];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadMembers();
+            const today = new Date();
+            document.getElementById('selMonth').value = today.getMonth();
+            document.getElementById('selYear').value = today.getFullYear();
+            renderPastorAbsenceOptions();
+            checkSavedSchedule();
+        });
+
+        /* --- LÓGICA DE GERAÇÃO (PORTADA DO ANTIGO) --- */
+        // Helpers do arquivo antigo
+        function preparePool(arr) { arr.sort(() => Math.random() - 0.5); return arr.sort((a,b) => a.roles.length - b.roles.length); }
+        function pick(pool,idx,busy,avoid) {
+            for(let i=0;i<pool.length;i++) { const x=pool[(idx+i)%pool.length]; if(!busy.has(x.id)&&!avoid.includes(x.id)) return {c:x,n:idx+i+1}; }
+            for(let i=0;i<pool.length;i++) { const x=pool[(idx+i)%pool.length]; if(!busy.has(x.id)) return {c:x,n:idx+i+1}; }
+            return null;
+        }
+        function pickAllowBusy(pool,idx,reallyBusy,avoid) {
+             for(let i=0;i<pool.length;i++) { const x=pool[(idx+i)%pool.length]; if(!reallyBusy.has(x.id) && !avoid.includes(x.id)) return {c:x,n:idx+i+1}; }
+             for(let i=0;i<pool.length;i++) { const x=pool[(idx+i)%pool.length]; if(!reallyBusy.has(x.id)) return {c:x,n:idx+i+1}; }
+             return null;
+        }
+
+        function gerarNovaEscala() {
+            if(currentScheduleData && !confirm("Já existe uma escala salva. Deseja sobrescrever?")) return;
+            const month=parseInt(document.getElementById('selMonth').value), year=parseInt(document.getElementById('selYear').value);
+            const absentDates=[]; document.querySelectorAll('#pastorAbsenceContainer input:checked').forEach(c=>absentDates.push(c.value));
+            const dates=[]; const d=new Date(year,month,1);
+            while(d.getMonth()===month) { if(d.getDay()===0||d.getDay()===3) dates.push({iso:d.toISOString().split('T')[0], isDom:d.getDay()===0, day:d.getDate()}); d.setDate(d.getDate()+1); }
+
+            // Lógica de Pools (Grupos)
+            const pas=members.find(m=>m.roles.includes('pastor'));
+            const pres=preparePool(members.filter(m=>m.roles.includes('presbitero')));
+            const quaLider=preparePool([...pres,...members.filter(m=>m.roles.includes('experimentado'))]);
+            
+            const vH=preparePool(members.filter(m=>m.roles.includes('vocal')&&m.gender==='M')), vM=preparePool(members.filter(m=>m.roles.includes('vocal')&&m.gender==='F'));
+            const pia=preparePool(members.filter(m=>m.roles.includes('piano'))), vio=preparePool(members.filter(m=>m.roles.includes('violao'))), gen=preparePool(members.filter(m=>m.roles.includes('piano')||m.roles.includes('violao')));
+            const som=preparePool(members.filter(m=>m.roles.includes('sonoplastia'))), mid=preparePool(members.filter(m=>m.roles.includes('midia')));
+            
+            // Lógica de Recepção (Pares)
+            const recPool=members.filter(m=>m.roles.includes('recepcao')); let recPairs=[], proc=new Set();
+            recPool.forEach(m=>{if(proc.has(m.id))return; if(m.spouseId){const s=recPool.find(x=>x.id===m.spouseId);if(s){recPairs.push([m,s]);proc.add(m.id);proc.add(s.id);}}});
+            let sm=preparePool(recPool.filter(m=>m.gender==='M'&&!proc.has(m.id))), sf=preparePool(recPool.filter(m=>m.gender==='F'&&!proc.has(m.id)));
+            while(sm.length&&sf.length)recPairs.push([sm.pop(),sf.pop()]);
+            recPairs.sort((a,b) => (a[0].roles.length+a[1].roles.length) - (b[0].roles.length+b[1].roles.length));
+
+            const faxGrps=[...new Set(members.map(m=>m.cleaningGroup).filter(g=>g))].sort();
+            let iP=0,iQ=0,iVH=0,iVM=0,iPi=0,iVi=0,iGe=0,iS=0,iMi=0,iRec=0,iFx=0;
+
+            const rows = dates.map(dt => {
+                const r = { day:dt.day, isDom:dt.isDom, iso:dt.iso, direcao:null, pregacao:null, instrumentos:[], vocais:[], som:null, midia:null, recepcaoManha:[], recepcaoNoite:[], faxinaGrp:null };
+                let busy=new Set(), faxIds=[]; 
+                
+                // CORREÇÃO: Se Pastor ausente, marca como ocupado imediatamente
+                if(pas && absentDates.includes(dt.iso)) {
+                    busy.add(pas.id);
+                }
+
+                if(dt.isDom && faxGrps.length) { r.faxinaGrp=faxGrps[iFx++%faxGrps.length]; faxIds=members.filter(m=>m.cleaningGroup===r.faxinaGrp).map(m=>m.id); }
+
+                // Pregação
+                let prg=null;
+                if(dt.isDom) {
+                    // Verifica se Pastor está ausente (já está em 'busy', mas checamos a lista explícita para lógica de substituição)
+                    if(absentDates.includes(dt.iso)) {
+                         prg = pres[iP++%pres.length];
+                    } else {
+                         prg = pas;
+                    }
+                }
+                else if(quaLider.length) prg = quaLider[iQ++%quaLider.length];
+                
+                r.pregacao=prg?prg.id:null; if(prg) busy.add(prg.id);
+
+                // Instrumentos
+                if(dt.isDom) {
+                    let p=pick(pia,iPi,busy,faxIds); if(p){r.instrumentos.push(p.c.id); busy.add(p.c.id); iPi=p.n;}
+                    let v=pick(vio,iVi,busy,faxIds); if(v){r.instrumentos.push(v.c.id); busy.add(v.c.id); iVi=v.n;}
+                    let cnt = (p?1:0)+(v?1:0); let att=0;
+                    while(cnt < 2 && att<10) { let g=pick(gen,iGe,busy,faxIds); if(g){r.instrumentos.push(g.c.id); busy.add(g.c.id); iGe=g.n; cnt++;} else break; att++; }
+                } else {
+                    let g=pick(gen,iGe,busy,faxIds); if(g){r.instrumentos.push(g.c.id); busy.add(g.c.id); iGe=g.n;}
+                }
+
+                // Direção
+                let dirCands = preparePool(members.filter(m=>['pastor','presbitero','experimentado'].some(x=>m.roles.includes(x)) && !busy.has(m.id)));
+                let dir = dirCands.length ? dirCands[0] : prg;
+                r.direcao = dir?dir.id:null; if(dir) busy.add(dir.id);
+
+                let reallyBusy = new Set([r.pregacao, r.direcao]); 
+                // Técnica
+                if(som.length) { const x=pick(som,iS,busy,faxIds); if(x){r.som=x.c.id; busy.add(x.c.id); reallyBusy.add(x.c.id); iS=x.n;} }
+                if(mid.length) { const x=pick(mid,iMi,busy,faxIds); if(x){r.midia=x.c.id; busy.add(x.c.id); reallyBusy.add(x.c.id); iMi=x.n;} }
+
+                // Vocal
+                let qH=dt.isDom?1:0, qM=dt.isDom?2:2;
+                while(qH>0) { const x=pickAllowBusy(vH,iVH,reallyBusy,faxIds); if(x){r.vocais.push(x.c.id); if(!r.instrumentos.includes(x.c.id)) busy.add(x.c.id); iVH=x.n; qH--;} else break; }
+                while(qM>0) { const x=pickAllowBusy(vM,iVM,reallyBusy,faxIds); if(x){r.vocais.push(x.c.id); if(!r.instrumentos.includes(x.c.id)) busy.add(x.c.id); iVM=x.n; qM--;} else break; }
+
+                // Recepção (Lógica de Pares do Antigo adaptada para saída do Novo)
+                if(dt.isDom) {
+                    if(recPairs.length) {
+                        let p1=null;
+                        for(let k=0;k<recPairs.length;k++) {
+                            const p=recPairs[(iRec+k)%recPairs.length];
+                            if(!busy.has(p[0].id) && !busy.has(p[1].id) && !faxIds.includes(p[0].id) && !faxIds.includes(p[1].id)) { p1=p; iRec+=k+1; break; }
+                        }
+                        if(!p1) p1=recPairs[iRec++%recPairs.length];
+                        r.recepcaoManha=[p1[0].id, p1[1].id]; // Array IDs para o render
+                        let p2=null;
+                        for(let k=0;k<recPairs.length;k++) {
+                            const p=recPairs[(iRec+k)%recPairs.length];
+                            if(p[0].id !== p1[0].id && !busy.has(p[0].id) && !busy.has(p[1].id) && !faxIds.includes(p[0].id) && !faxIds.includes(p[1].id)) { p2=p; iRec+=k+1; break; }
+                        }
+                        if(!p2) { for(let k=0;k<recPairs.length;k++) { const p=recPairs[(iRec+k)%recPairs.length]; if(p[0].id !== p1[0].id) { p2=p; iRec+=k+1; break; } } }
+                        if(p2) r.recepcaoNoite=[p2[0].id, p2[1].id];
+                    }
+                } else {
+                    if(recPairs.length) { 
+                        let p=null;
+                        for(let k=0;k<recPairs.length;k++) {
+                            const cand=recPairs[(iRec+k)%recPairs.length];
+                            if(!busy.has(cand[0].id) && !busy.has(cand[1].id)) { p=cand; iRec+=k+1; break; }
+                        }
+                        if(!p) p=recPairs[iRec++%recPairs.length];
+                        r.recepcaoNoite=[p[0].id, p[1].id]; 
+                    }
+                }
+                return r;
+            });
+
+            currentScheduleData = { month, year, rows }; 
+            saveCurrentSchedule();
+            Swal.fire({
+                title: 'Escala Gerada!',
+                icon: 'success',
+                timer: 1500,
+                showConfirmButton: false
+            });
+        }
+
+        // --- MANIPULAÇÃO DE DADOS ---
+        function loadMembers() { const s=localStorage.getItem('church_members_v22'); members=s?JSON.parse(s):JSON.parse(JSON.stringify(initialData)); renderMembersGrid(); updateSpouseOptions(); }
+        function saveMembers() { localStorage.setItem('church_members_v22', JSON.stringify(members)); renderMembersGrid(); updateSpouseOptions(); }
+        function resetDatabase() { if(confirm('Restaurar?')) { members=JSON.parse(JSON.stringify(initialData)); saveMembers(); location.reload(); }}
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            const roles=[]; document.querySelectorAll('input[name="roles"]:checked').forEach(c=>roles.push(c.value));
+            const name=document.getElementById('inputName').value.trim(); if(!name)return;
+            const m={name, email:document.getElementById('inputEmail').value.trim(), gender:document.getElementById('inputGender').value, spouseId:document.getElementById('inputSpouse').value?parseInt(document.getElementById('inputSpouse').value):null, roles, cleaningGroup:document.getElementById('inputCleaningGroup').value};
+            if(editingId) {
+                const t=members.find(x=>x.id===editingId);
+                if(t.spouseId && t.spouseId!==m.spouseId) members.find(x=>x.id===t.spouseId).spouseId=null;
+                Object.assign(t,m);
+                if(m.spouseId) { const nw=members.find(x=>x.id===m.spouseId); if(nw) nw.spouseId=editingId; }
+                cancelEdit();
+            } else { m.id=Date.now(); members.push(m); if(m.spouseId) members.find(x=>x.id===m.spouseId).spouseId=m.id; document.getElementById('memberForm').reset(); }
+            saveMembers(); Swal.fire({title:'Salvo',icon:'success',timer:800,showConfirmButton:false,position:'top-end',toast:true});
+        }
+        function editMember(id) {
+            const m=members.find(x=>x.id===id); editingId=id;
+            document.getElementById('formTitle').innerText='Editando'; document.getElementById('inputName').value=m.name; document.getElementById('inputEmail').value=m.email||""; document.getElementById('inputGender').value=m.gender;
+            document.querySelectorAll('input[name="roles"]').forEach(c=>c.checked=false); m.roles.forEach(r=>{const c=document.querySelector(`input[value="${r}"]`);if(c)c.checked=true;});
+            document.getElementById('inputCleaningGroup').value=m.cleaningGroup||""; updateSpouseOptions(); document.getElementById('inputSpouse').value=m.spouseId||"";
+            const btn=document.getElementById('btnSubmit'); btn.innerText='Atualizar'; btn.classList.replace('bg-slate-800','bg-amber-600');
+            document.getElementById('btnCancel').classList.remove('hidden');
+        }
+        function cancelEdit() { editingId=null; document.getElementById('formTitle').innerText='Novo Membro'; document.getElementById('memberForm').reset(); document.getElementById('btnSubmit').innerText='Salvar'; document.getElementById('btnCancel').classList.add('hidden'); document.getElementById('btnSubmit').classList.replace('bg-amber-600','bg-slate-800'); }
+        function updateSpouseOptions() {
+            const s=document.getElementById('inputSpouse'), g=document.getElementById('inputGender').value, cur=s.value; s.innerHTML='<option value="">Solteiro(a)</option>';
+            members.filter(m=>m.gender===(g==='M'?'F':'M')&&m.id!==editingId).forEach(p=>s.innerHTML+=`<option value="${p.id}">${p.name}</option>`); if(cur)s.value=cur;
+        }
+        function renderMembersGrid() {
+            const g=document.getElementById('membersGrid'); if(!g) return;
+            g.innerHTML=''; document.getElementById('memberCount').innerText=members.length;
+            members.forEach(m=>{
+                const r=m.roles.length?m.roles.map(x=>`<span class="px-1.5 py-0.5 bg-slate-100 text-[9px] rounded border uppercase font-bold text-slate-600">${x.substr(0,3)}</span>`).join(' '):'<span class="text-slate-400 text-[10px]">Sem</span>';
+                g.innerHTML+=`<div class="border p-3 rounded-lg flex justify-between bg-white hover:shadow-sm"><div><div class="font-bold text-sm">${m.name}</div><div class="text-[9px] text-gray-400 mb-1">${m.email||''}</div><div class="flex flex-wrap gap-1">${r}</div>${m.cleaningGroup?`<span class="text-[9px] text-amber-800">G${m.cleaningGroup}</span>`:''}</div><div class="flex gap-1"><i class="fas fa-pen text-slate-400 hover:text-blue-500 cursor-pointer p-1" onclick="editMember(${m.id})"></i><i class="fas fa-trash text-slate-400 hover:text-red-500 cursor-pointer p-1" onclick="deleteMember(${m.id})"></i></div></div>`;
+            });
+        }
+        function deleteMember(id) { if(confirm('Excluir?')) { const m=members.find(x=>x.id===id); if(m.spouseId) members.find(x=>x.id===m.spouseId).spouseId=null; members=members.filter(x=>x.id!==id); saveMembers(); } }
+        function exportData() { const a=document.createElement('a'); a.href="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(members)); a.download="backup.json"; a.click(); }
+        function importData(i) { const f=i.files[0]; if(f) { const r=new FileReader(); r.onload=e=>{try{members=JSON.parse(e.target.result);saveMembers();Swal.fire('Ok','','success');}catch{Swal.fire('Erro','','error');}}; r.readAsText(f); i.value=''; } }
+
+        function renderPastorAbsenceOptions() {
+            const m=parseInt(document.getElementById('selMonth').value), y=parseInt(document.getElementById('selYear').value), c=document.getElementById('pastorAbsenceContainer'); c.innerHTML='';
+            const d=new Date(y,m,1);
+            while(d.getMonth()===m) { if(d.getDay()===0) { const iso=d.toISOString().split('T')[0]; c.innerHTML+=`<div class="flex items-center"><input type="checkbox" id="abs_${iso}" value="${iso}" class="mr-2"><label for="abs_${iso}" class="text-xs text-slate-600">Domingo ${d.getDate()}</label></div>`; } d.setDate(d.getDate()+1); }
+        }
+        function handleDateChange() { renderPastorAbsenceOptions(); checkSavedSchedule(); }
+        function preparePrint() { 
+            const t=document.getElementById('customTitle').value, m=document.getElementById('selMonth'), y=document.getElementById('selYear').value; 
+            document.getElementById('printDocTitle').innerText=t||"Escala Mensal"; 
+            document.getElementById('printMonthYear').innerText=`${m.options[m.selectedIndex].text} / ${y}`; 
+            window.print(); 
+        }
+        function downloadICS() {
+            if(!currentScheduleData) return Swal.fire('Erro','Gere escala','error');
+            let ics="BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//IBR//PT\n";
+            currentScheduleData.rows.forEach(r=>{
+                const s=new Date(r.iso); s.setHours(r.isDom?18:19,0,0); const e=new Date(s); e.setHours(s.getHours()+2); const n=id=>members.find(x=>x.id==id)?.name||'?';
+                const d=`Direção: ${n(r.direcao)}\\nPregação: ${n(r.pregacao)}\\nInstr: ${r.instrumentos.map(x=>n(x)).join(', ')}`;
+                const fmt=d=>d.toISOString().replace(/-|:|\.\d\d\d/g,"").slice(0,15)+"Z";
+                ics+=`BEGIN:VEVENT\nDTSTART:${fmt(s)}\nDTEND:${fmt(e)}\nSUMMARY:Culto IBR\nDESCRIPTION:${d}\nEND:VEVENT\n`;
+            });
+            ics+="END:VCALENDAR";
+            const l=document.createElement('a'); l.href=window.URL.createObjectURL(new Blob([ics],{type:'text/calendar'})); l.download='escala.ics'; l.click();
+        }
+
+        // --- RENDERIZAÇÃO E STORAGE ---
+        function checkSavedSchedule() {
+            const m=document.getElementById('selMonth').value, y=document.getElementById('selYear').value;
+            const k=`schedule_v22_${y}_${m}`, s=localStorage.getItem(k);
+            if(s) { currentScheduleData=JSON.parse(s); renderScheduleFromData(currentScheduleData); }
+            else { document.getElementById('scheduleBody').innerHTML='<tr><td colspan="8" class="p-8 text-center text-slate-400 italic">Sem escala gerada.</td></tr>'; currentScheduleData=null; }
+            document.getElementById('escalaTitle').innerText=`Escala ${document.getElementById('selMonth').options[m].text}/${y}`;
+        }
+        function saveCurrentSchedule() { if(currentScheduleData) { const m=document.getElementById('selMonth').value, y=document.getElementById('selYear').value; localStorage.setItem(`schedule_v22_${y}_${m}`,JSON.stringify(currentScheduleData)); renderScheduleFromData(currentScheduleData); } }
+
+        function renderScheduleFromData(data) {
+            const head = document.getElementById('tabelaHead');
+            const body = document.getElementById('scheduleBody');
+            head.innerHTML = ''; body.innerHTML = '';
+
+            let cols = [];
+            const tableClass = `mode-${currentReportMode}`;
+            document.querySelector('#tabelaEscala').className = `w-full text-left border-collapse ${tableClass}`;
+
+            if(currentReportMode === 'general') {
+                cols = [
+                    {title:'Data', w:'text-center'}, 
+                    {title:'Direção'}, {title:'Pregação'}, 
+                    {title:'Música'}, {title:'Técnica'}, 
+                    {title:'Recepção'}, {title:'Faxina', cls:'bg-amber-50 text-amber-900 border-l border-amber-100'}
+                ];
+            } else if(currentReportMode === 'music') {
+                cols = [{title:'Data', w:'text-center'}, {title:'Direção'}, {title:'Instrumentos / Vocais'}, {title:'Som / Mídia'}];
+            } else if(currentReportMode === 'reception') {
+                cols = [{title:'Data', w:'text-center'}, {title:'Recepção Manhã'}, {title:'Recepção Noite'}];
+            } else if(currentReportMode === 'cleaning') {
+                cols = [{title:'Data', w:'text-center'}, {title:'Grupo'}, {title:'Equipe de Limpeza'}];
+            }
+
+            let hRow = `<tr class="bg-slate-100 text-slate-600 text-xs uppercase tracking-wider font-semibold border-b border-slate-200">`;
+            cols.forEach(c => hRow += `<th class="p-3 ${c.w||''} ${c.cls||''}">${c.title}</th>`);
+            if(currentReportMode === 'general') hRow += `<th class="p-3 text-center no-print"></th>`;
+            hRow += `</tr>`;
+            head.innerHTML = hRow;
+
+            data.rows.forEach((r,idx) => {
+                const tr=document.createElement('tr'); tr.className=r.isDom?"bg-blue-50/50":"";
+                const dateCell = `<td class="border-b p-1 text-center align-middle"><div class="font-bold text-base text-slate-800" style="line-height:1">${r.day}</div><div class="text-[7px] font-bold text-slate-400 uppercase" style="line-height:1">${r.isDom?'DOM':'QUA'}</div></td>`;
+                let rowHtml = dateCell;
+
+                // FIX: Centralização vertical e remoção do traço na impressão
+                const sel = (fil, val, f, si, lbl) => {
+                    const l=members.filter(fil).sort((a,b)=>a.name.localeCompare(b.name));
+                    const selectedName = val ? (members.find(x=>x.id==val)?.name || '') : '';
+                    // Se não tiver label (ex: número ou sigla), não renderiza o span, evitando traço
+                    const labelHtml = lbl ? `<span class="section-label" style="min-width:20px;color:#999;">${lbl}</span>` : '';
+                    let h=`<div class="flex items-center gap-1 w-full">${labelHtml}<select class="dynamic-select" onchange="updateRow(${idx},'${f}',this.value,${si})"><option value=""></option>`;
+                    l.forEach(m=>{const s=m.id==val;h+=`<option value="${m.id}" ${s?'selected':''}>${m.name}</option>`});
+                    if(val&&!l.find(m=>m.id==val)){const m=members.find(x=>x.id==val);if(m)h+=`<option value="${m.id}" selected>${m.name}*</option>`}
+                    return h+`</select><span class="print-value" style="display:none;color:#000;">${selectedName}</span></div>`;
+                };
+
+                const ifil=m=>m.roles.includes('piano')||m.roles.includes('violao'), vfil=m=>m.roles.includes('vocal');
+
+                if(currentReportMode === 'general') {
+                    let musH=`<div><span class="section-label text-[7px]">Inst</span>`;
+                    for(let i=0;i<(r.isDom?2:1);i++) musH+=sel(ifil,r.instrumentos[i],'instrumentos',i,(i+1));
+                    musH+=`</div><div style="margin-top:0.5px"><span class="section-label text-[7px]">Voz</span>`;
+                    for(let i=0;i<(r.isDom?3:2);i++) musH+=sel(vfil,r.vocais[i],'vocais',i,(i+1));
+                    musH+=`</div>`;
+
+                    let recH=`<div>`;
+                    if(r.isDom) {
+                        recH+=`<span class="section-label text-blue-600 text-[6px]">Manh</span>`+sel(m=>m.roles.includes('recepcao'),r.recepcaoManha[0],'recepcaoManha',0,'1')+sel(m=>m.roles.includes('recepcao'),r.recepcaoManha[1],'recepcaoManha',1,'2');
+                        recH+=`<span class="section-label text-indigo-600 text-[6px]" style="margin-top:1px">Noite</span>`+sel(m=>m.roles.includes('recepcao'),r.recepcaoNoite[0],'recepcaoNoite',0,'1')+sel(m=>m.roles.includes('recepcao'),r.recepcaoNoite[1],'recepcaoNoite',1,'2');
+                    } else recH+=`<span class="section-label text-[6px]">Noite</span>`+sel(m=>m.roles.includes('recepcao'),r.recepcaoNoite[0],'recepcaoNoite',0,'1')+sel(m=>m.roles.includes('recepcao'),r.recepcaoNoite[1],'recepcaoNoite',1,'2');
+                    recH+=`</div>`;
+
+                    let fax=``;
+                    if(r.faxinaGrp) {
+                        const g=members.filter(m=>m.cleaningGroup===r.faxinaGrp);
+                        const b=[r.direcao,r.pregacao,r.som,r.midia,...r.instrumentos,...r.vocais].filter(x=>x);
+                        fax=`<div class="font-bold text-amber-700 text-[7px]">G-${r.faxinaGrp}</div>`+g.map(m=>`<div class="text-[7px] ${b.includes(m.id)?'text-red-600 font-bold':'text-slate-500'} leading-tight">${m.name.split(' ')[0]}</div>`).join('');
+                    }
+
+                    rowHtml += `
+                        <td class="border-b p-1 align-middle">${sel(m=>['pastor','presbitero','experimentado'].some(x=>m.roles.includes(x)),r.direcao,'direcao',null,'')}</td>
+                        <td class="border-b p-1 align-middle">${sel(m=>['pastor','presbitero','experimentado','assistente'].some(x=>m.roles.includes(x)),r.pregacao,'pregacao',null,'')}</td>
+                        <td class="border-b p-1 align-middle">${musH}</td>
+                        <td class="border-b p-1 align-middle">${sel(m=>m.roles.includes('sonoplastia'),r.som,'som',null,'S')}${sel(m=>m.roles.includes('midia'),r.midia,'midia',null,'M')}</td>
+                        <td class="border-b p-1 align-middle">${recH}</td>
+                        <td class="border-b p-1 align-middle bg-amber-50/50 border-l border-amber-100 faxina-cell">${fax}</td>
+                        <td class="border-b p-1 text-center no-print align-middle"><button onclick="alert('Funcionalidade Google Calendar')" class="text-blue-600"><i class="fab fa-google"></i></button></td>
+                    `;
+                } else if(currentReportMode === 'music') {
+                     let musH=`<div class="mb-2"><span class="section-label text-xs mb-1 text-slate-700">Instrumentos</span><div class="grid grid-cols-2 gap-2">`;
+                    for(let i=0;i<(r.isDom?2:1);i++) musH+=sel(ifil,r.instrumentos[i],'instrumentos',i,'');
+                    musH+=`</div></div><div><span class="section-label text-xs mb-1 text-slate-700">Vocal</span><div class="grid grid-cols-3 gap-2">`;
+                    for(let i=0;i<(r.isDom?3:2);i++) musH+=sel(vfil,r.vocais[i],'vocais',i,'');
+                    musH+=`</div></div>`;
+                    let tecH = `<div class="grid grid-cols-1 gap-2">${sel(m=>m.roles.includes('sonoplastia'),r.som,'som',null,'SOM')}${sel(m=>m.roles.includes('midia'),r.midia,'midia',null,'MID')}</div>`;
+                    rowHtml += `<td class="border-b p-2 align-middle">${sel(m=>['pastor','presbitero','experimentado'].some(x=>m.roles.includes(x)),r.direcao,'direcao',null,'DIR')}</td><td class="border-b p-2 align-middle">${musH}</td><td class="border-b p-2 align-middle">${tecH}</td>`;
+                } else if(currentReportMode === 'reception') {
+                    let manha = r.isDom ? `<div class="grid grid-cols-2 gap-2">` + sel(m=>m.roles.includes('recepcao'),r.recepcaoManha[0],'recepcaoManha',0,'') + sel(m=>m.roles.includes('recepcao'),r.recepcaoManha[1],'recepcaoManha',1,'') + `</div>` : ``;
+                    let noite = `<div class="grid grid-cols-2 gap-2">` + sel(m=>m.roles.includes('recepcao'),r.recepcaoNoite[0],'recepcaoNoite',0,'') + sel(m=>m.roles.includes('recepcao'),r.recepcaoNoite[1],'recepcaoNoite',1,'') + `</div>`;
+                    rowHtml += `<td class="border-b p-4 align-middle">${manha}</td><td class="border-b p-4 align-middle">${noite}</td>`;
+                } else if(currentReportMode === 'cleaning') {
+                    let grp = r.faxinaGrp ? `<span class="font-bold text-amber-800 text-[8px]">Grupo ${r.faxinaGrp}</span>` : ``;
+                    let list = ``;
+                    if(r.faxinaGrp) { const g=members.filter(m=>m.cleaningGroup===r.faxinaGrp); list = `<div>` + g.map(m=>`<div class="text-[7.5px] text-slate-700">${m.name}</div>`).join('') + `</div>`; }
+                    rowHtml += `<td class="border-b p-2 align-middle text-center">${grp}</td><td class="border-b p-2 align-middle">${list}</td>`;
+                }
+
+                tr.innerHTML = rowHtml;
+                body.appendChild(tr);
+            });
+            validateConflicts();
+        }
+
+        window.updateRow=(ri,f,v,si)=>{if(!currentScheduleData)return;const r=currentScheduleData.rows[ri],val=v?parseInt(v):null;if(f==='instrumentos')r.instrumentos[si]=val;else if(f==='vocais')r.vocais[si]=val;else if(f==='recepcaoManha')r.recepcaoManha[si]=val;else if(f==='recepcaoNoite')r.recepcaoNoite[si]=val;else r[f]=val;saveCurrentSchedule();validateConflicts();};
+        
+        function validateConflicts(){document.querySelectorAll('tr').forEach(tr=>{const s=tr.querySelectorAll('select'),v=Array.from(s).map(x=>x.value).filter(x=>x),d=v.filter((i,x)=>v.indexOf(i)!==x);s.forEach(x=>x.classList.remove('conflict-detected'));if(d.length)s.forEach(x=>{if(d.includes(x.value))x.classList.add('conflict-detected')});});}
+        function setReportMode(mode) { currentReportMode=mode; document.querySelectorAll('.filter-btn').forEach(b=>{if(b.id.startsWith('btn-mode')) { b.classList.remove('active','bg-slate-800','text-white','border-slate-800'); b.classList.add('border-slate-300','text-slate-700'); }}); const btn=document.getElementById(`btn-mode-${mode}`); if(btn){btn.classList.add('active','bg-slate-800','text-white','border-slate-800'); btn.classList.remove('border-slate-300','text-slate-700');} const titles={'general':'Escala Mensal','music':'Escala de Música & Técnica','reception':'Escala de Recepção','cleaning':'Escala de Faxina'}; document.getElementById('customTitle').value=titles[mode]; renderScheduleFromData(currentScheduleData); }
+        function setOrientation(orientation) { currentOrientation=orientation; const styleTag=document.getElementById('page-orientation-style'); const btnP=document.getElementById('btn-orient-portrait'); const btnL=document.getElementById('btn-orient-landscape'); if(orientation==='landscape'){styleTag.innerHTML='@media print { @page { size: A4 landscape; margin: 4mm 3mm; } }'; document.body.classList.add('landscape-mode'); btnL.classList.add('active','bg-slate-800','text-white','border-slate-800'); btnL.classList.remove('border-slate-300','text-slate-700'); btnP.classList.remove('active','bg-slate-800','text-white','border-slate-800'); btnP.classList.add('border-slate-300','text-slate-700');} else {styleTag.innerHTML='@media print { @page { size: A4 portrait; margin: 6mm 4mm; } }'; document.body.classList.remove('landscape-mode'); btnP.classList.add('active','bg-slate-800','text-white','border-slate-800'); btnP.classList.remove('border-slate-300','text-slate-700'); btnL.classList.remove('active','bg-slate-800','text-white','border-slate-800'); btnL.classList.add('border-slate-300','text-slate-700');} }
+        function switchTab(t){ document.getElementById('view-scale').classList.add('hidden'); document.getElementById('view-team').classList.add('hidden'); document.getElementById(t).classList.remove('hidden'); document.getElementById('tab-scale').classList.remove('bg-amber-600','text-white','shadow'); document.getElementById('tab-scale').classList.add('text-slate-300'); document.getElementById('tab-team').classList.remove('text-slate-300'); document.getElementById('tab-team').classList.add('bg-amber-600','text-white','shadow'); if(t==='view-scale'){ document.getElementById('tab-scale').classList.remove('text-slate-300'); document.getElementById('tab-scale').classList.add('bg-amber-600','text-white','shadow'); document.getElementById('tab-team').classList.remove('bg-amber-600','text-white','shadow'); document.getElementById('tab-team').classList.add('text-slate-300'); } }
+    </script>
+</body>
+</html>
