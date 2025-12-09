@@ -1,0 +1,122 @@
+Aqui está um modelo de código HTML básico, mas bem estruturado e com um design limpo (CSS embutido), pronto para servir como um "índice" ou "portfolio" para os seus arquivos no GitHub Pages.
+
+O GitHub Pages não cria listas de arquivos automaticamente (como servidores antigos faziam), então você precisa desse arquivo index.html para guiar os visitantes.
+
+Código index.html
+Copie o código abaixo e salve-o como index.html na raiz do seu repositório.
+
+HTML
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meus Projetos - GitHub Pages</title>
+    <style>
+        /* Estilização Básica (CSS) */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: #ffffff;
+            width: 100%;
+            max-width: 600px;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 24px;
+        }
+
+        .project-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .project-item {
+            margin-bottom: 15px;
+        }
+
+        .project-link {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #eef2f5;
+            color: #2c3e50;
+            text-decoration: none;
+            padding: 15px 20px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            border-left: 5px solid #007bff; /* Cor da barrinha lateral */
+        }
+
+        .project-link:hover {
+            background-color: #007bff;
+            color: #ffffff;
+            transform: translateX(5px);
+            box-shadow: 0 2px 8px rgba(0,123,255,0.3);
+        }
+
+        .project-link span {
+            font-weight: 600;
+        }
+
+        .arrow {
+            font-size: 18px;
+        }
+
+        /* Rodapé simples */
+        footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 12px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🗂️ Meus Arquivos</h1>
+        
+        <ul class="project-list">
+            
+            <li class="project-item">
+                <a href="exemplo1.html" class="project-link" target="_blank">
+                    <span>Gerador de Boletim Simplificado</span>
+                    <span class="arrow">→</span>
+                </a>
+            </li>
+
+            <li class="project-item">
+                <a href="pasta/exemplo2.html" class="project-link" target="_blank">
+                    <span>Gerador de Escalas</span>
+                    <span class="arrow">→</span>
+                </a>
+            </li>
+
+            </ul>
+
+        <footer>
+            Hospedado no GitHub Pages
+        </footer>
+    </div>
+
+</body>
+</html>
